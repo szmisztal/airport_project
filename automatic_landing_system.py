@@ -1,7 +1,9 @@
 import socket as s
+import random
 from threading import Lock
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from data_utils import DataUtils
+from airplane import Airplane
 
 
 class AutomaticLandingSystem:
@@ -17,9 +19,9 @@ class AutomaticLandingSystem:
         self.is_running = True
         self.airport_lanes = 2
         self.airplanes_list = []
-        self.width = 10000
-        self.length = 10000
-        self.height = 5000
+        self.airport_width = 5000
+        self.airport_length = 5000
+        self.airport_height = 5000
 
     def max_number_of_planes(self):
         if len(self.airplanes_list) > 99:
@@ -33,8 +35,7 @@ class AutomaticLandingSystem:
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
             client_socket, address = server_socket.accept()
-            client_ip = address[0]
-            client_port = address[1]
-            print(f"Connection from {client_ip}:{client_port}")
-            # with client_socket:
-            #     while self.is_running:
+            with client_socket:
+                while self.is_running:
+                    airplane = Airplane(10000, 10000, random.randint(3000, 5000))
+                    self.airplanes_list.append(airplane)
