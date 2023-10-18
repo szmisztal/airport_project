@@ -19,24 +19,10 @@ class Airplane:
         self.length = length
         self.height = height
 
-    def initial_airplane_co_ordinates(self):
-        height = random.randint(3000, 5000)
-        random_int = random.randint(-5000, 5000)
-        constant = 5000
-        neg_constant = -5000
-        possible_co_ordinates = [
-            [random_int, constant, height],
-            [random_int, neg_constant, height],
-            [constant, random_int, height],
-            [neg_constant, random_int, height]
-        ]
-        choose_option = random.choice(possible_co_ordinates)
-        co_ordinates_dict = {
-            "width": choose_option[0],
-            "length": choose_option[1],
-            "height": choose_option[2]
-        }
-        return co_ordinates_dict
+    @classmethod
+    def create_airplane_object(cls, co_ordinates_dict):
+        airplane = cls(**co_ordinates_dict)
+        return airplane
 
     def time_for_landing(self):
         self.fuel -= 1
