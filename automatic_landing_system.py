@@ -1,5 +1,4 @@
 import socket as s
-import random
 from threading import Lock
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from data_utils import DataUtils
@@ -17,11 +16,9 @@ class AutomaticLandingSystem:
         self.lock = Lock()
         self.data_utils = DataUtils()
         self.is_running = True
-        self.airport_lanes = 2
+        self.airport_lane_1 = AirportLane((-2000, 2000), (500, 600), (0, 3000))
+        self.airport_lane_2 = AirportLane((-2000, 2000), (-500, -600), (0, 3000))
         self.airplanes_list = []
-        self.airport_width = 5000
-        self.airport_length = 5000
-        self.airport_height = 5000
 
     def max_number_of_planes(self):
         if len(self.airplanes_list) > 99:
@@ -30,36 +27,49 @@ class AutomaticLandingSystem:
             }
             return overload_message
 
-    def initial_airplane_co_ordinates(self):
-        height = random.randint(3000, 5000)
-        random_int = random.randint(-5000, 5000)
-        constant = 5000
-        neg_constant = -5000
-        possible_co_ordinates = [
-            [random_int, constant, height],
-            [random_int, neg_constant, height],
-            [constant, random_int, height],
-            [neg_constant, random_int, height]
-        ]
-        choose_option = random.choice(possible_co_ordinates)
-        co_ordinates_dict = {
-            "width": choose_option[0],
-            "length": choose_option[1],
-            "height": choose_option[2]
+    def first_message_to_airplane(self):
+        start_message = {
+            "STATUS": "You appeared on the radar"
         }
-        return co_ordinates_dict
+        return start_message
 
-    def connect_with_airplane(self):
-        co_ordinates_dict = self.initial_airplane_co_ordinates()
-        airplane = Airplane.create_airplane_object(co_ordinates_dict)
-        self.airplanes_list.append(airplane)
-        return airplane
+    def read_airplane_request(self, airplane_request):
+        deserialized_dict = self.data_utils.deserialize_json(airplane_request)
+        print(deserialized_dict)
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
             client_socket, address = server_socket.accept()
-            with client_socket:
-                while self.is_running:
-                    self.connect_with_airplane()
+            welcome_message = self.data_utils.serialize_to_json(self.first_message_to_airplane())
+            client_socket.sendall(welcome_message)
+            airplane_json = client_socket.recv(BUFFER)
+            airplane_response = self.read_airplane_request(airplane_json)
+            if "FIRST CO-ORDINATES" in airplane_response:
+                co_ordinates = airplane_response["FIRST CO-ORDINATES"]
+                airplane = Airplane(**co_ordinates)
+                self.airplanes_list.append(airplane)
+            # with client_socket:
+            #     while self.is_running:
+
+
+class AirportLane:
+    def __init__(self, width, length, height ):
+        self.width = width
+        self.length = length
+        self.height = height
+
+    def lane_coordinates(self):
+        co_ordinates_dict = {
+            "width": self.width,
+            "length": self.length,
+            "height": self.height
+        }
+        return co_ordinates_dict
+
+
+if __name__ == "__main__":
+    airport = AutomaticLandingSystem()
+    print("AIRPORT LANDING SYSTEM`S UP...")
+    airport.start()
