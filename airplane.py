@@ -20,5 +20,9 @@ class Airplane:
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
             client_socket.connect((HOST, PORT))
+            while self.is_running:
+                pass
 
-
+if __name__ == "__main__":
+    airplane = Airplane()
+    airplane.start()
