@@ -1,21 +1,9 @@
-import socket as s
 import random
 from threading import Lock
-from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
-from data_utils import DataUtils
-from airplane import Airplane
 
 
 class Airport:
     def __init__(self):
-        self.HOST = HOST
-        self.PORT = PORT
-        self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
-        self.SOCKET_TYPE = SOCKET_TYPE
-        self.BUFFER = BUFFER
-        self.data_utils = DataUtils()
-        self.encode_format = encode_format
-        self.is_running = True
         self.lock = Lock()
         self.max_numbers_of_airplanes = 100
         self.airplanes_in_air_list = []
@@ -43,18 +31,6 @@ class Airport:
         }
         return co_ordinates_dict
 
-    def start(self):
-        with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
-            server_socket.bind((self.HOST, self.PORT))
-            server_socket.listen()
-            client_socket, address = server_socket.accept()
-            with client_socket:
-                while self.is_running:
-                    co_ordinates = self.establish_init_airplane_co_ordinates()
-                    airplane = Airplane(**co_ordinates)
-                    self.airplanes_in_air_list.append(airplane)
-
-
 
 class AirportLane:
     def __init__(self, x1, x2, y1, y2):
@@ -77,10 +53,6 @@ class AirCorridor:
         self.width = (y1, y2)
         self.height = (z1, z2)
 
-
-if __name__ == "__main__":
-    airport = Airport()
-    airport.start()
 
 
 
