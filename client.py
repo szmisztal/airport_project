@@ -4,7 +4,7 @@ from data_utils import DataUtils
 
 
 class Client:
-    def __init__(self, x, y, z):
+    def __init__(self):
         self.HOST = HOST
         self.PORT = PORT
         self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
@@ -19,3 +19,6 @@ class Client:
             client_socket.connect((HOST, PORT))
             while self.is_running:
                 pass
+
+    def stop(self):
+        self.is_running = False
