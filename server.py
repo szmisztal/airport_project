@@ -15,7 +15,7 @@ class Server:
         self.data_utils = DataUtils()
         self.encode_format = encode_format
         self.is_running = True
-        self.version = "0.0.4"
+        self.version = "0.0.5"
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
