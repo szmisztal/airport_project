@@ -31,7 +31,6 @@ class Airport:
         }
         return co_ordinates_dict
 
-
 class AirportLane:
     def __init__(self, x1, x2, y1, y2):
         self.occupied = False
