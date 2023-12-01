@@ -1,42 +1,48 @@
-import random
+import math
 from threading import Lock
 
 
 class Airport:
     def __init__(self):
         self.lock = Lock()
-        self.max_numbers_of_airplanes = 100
-        self.airplanes_in_air_list = []
         self.airport_area = AirportArea(-5000, 5000, -5000, 5000, 0, 5000)
-        self.air_corridor = AirCorridor(-3500, 3500, -250, 250, 0 , 2000)
-        self.airport_lane_1 = AirportLane(-2500, 2500, 100, 150)
-        self.airport_lane_2 = AirportLane(-2500, 2500, -100, -150)
+        self.air_corridor_1 = AirCorridor(-1500, 1500, -500, -400, 0, 2000)
+        self.air_corridor_2 = AirCorridor(-1500, 1500, 400, 500, 0, 2000)
+        self.airport_lanes = 2
+        self.max_airplanes_number_in_the_air = 100
+        self.airplanes_in_air_list = []
+        self.crashed_airplanes = []
 
-    def establish_init_airplane_co_ordinates(self):
-        height = random.randint(2000, 5000)
-        random_int = random.randint(-5000, 5000)
-        constant = 5000
-        neg_constant = -5000
-        possible_co_ordinates = [
-            [random_int, constant, height],
-            [random_int, neg_constant, height],
-            [constant, random_int, height],
-            [neg_constant, random_int, height]
-        ]
-        choose_option = random.choice(possible_co_ordinates)
-        co_ordinates_dict = {
-            "x": choose_option[0],
-            "y": choose_option[1],
-            "z": choose_option[2]
-        }
-        return co_ordinates_dict
+    def check_airplanes_number(self):
+        if len(self.airplanes_in_air_list) > self.max_airplanes_number_in_the_air:
+            message = {"Attention": "We have enough airplanes in our airspace, please fly to another airport"}
+            return message
 
-class AirportLane:
-    def __init__(self, x1, x2, y1, y2):
-        self.occupied = False
-        self.length = (x1, x2)
-        self.width = (y1, y2)
-        self.height = 0
+    def check_distance_between_airplanes(self):
+        for i, airplane_1 in enumerate(self.airplanes_in_air_list):
+            for j, airplane_2 in enumerate(self.airplanes_in_air_list):
+                if i != j:
+                    distance = self.euclidean_formula(airplane_1, airplane_2)
+                    if distance <= 10:
+                        print(f"Collision between {airplane_1} and {airplane_2}")
+                        self.crashed_airplanes.extend([airplane_1, airplane_2])
+                    if distance in range(10, 1000):
+                        message = {"Distance": "You`re to close to another airplane. Change your position"}
+                        return message
+        self.remove_crashed_airplanes_from_the_list()
+
+    @staticmethod
+    def euclidean_formula(airplane_1, airplane_2):
+        distance = math.sqrt((
+            pow(airplane_1.x - airplane_2.x, 2) +
+            pow(airplane_1.y - airplane_2.y, 2) +
+            pow(airplane_1.z - airplane_2.z, 2)
+        ))
+        return distance
+
+    def remove_crashed_airplanes_from_the_list(self):
+        for airplane in self.crashed_airplanes:
+            self.airplanes_in_air_list.remove(airplane)
 
 
 class AirportArea:
@@ -48,6 +54,7 @@ class AirportArea:
 
 class AirCorridor:
     def __init__(self, x1, x2, y1, y2, z1, z2):
+        self.occupied = False
         self.length = (x1, x2)
         self.width = (y1, y2)
         self.height = (z1, z2)
