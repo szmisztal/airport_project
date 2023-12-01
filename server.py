@@ -1,7 +1,6 @@
 import socket as s
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from data_utils import DataUtils
-from airplane import Airplane
 from airport import Airport
 
 
@@ -25,6 +24,7 @@ class Server:
             airport = Airport()
             with client_socket:
                 while self.is_running:
-                    co_ordinates = airport.establish_init_airplane_co_ordinates()
-                    airplane = Airplane(**co_ordinates)
-                    airport.airplanes_in_air_list.append(airplane)
+                    pass
+                    # co_ordinates = airport.establish_init_airplane_co_ordinates()
+                    # airplane = Airplane(**co_ordinates)
+                    # airport.airplanes_in_air_list.append(airplane)
