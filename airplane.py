@@ -10,6 +10,7 @@ class Airplane:
         self.z = z
         self.coordinates = (x, y, z)
         self.quarter = self.establish_airplane_quarter()
+        self.speed = 200
 
     @classmethod
     def establish_init_airplane_coordinates(cls):
@@ -48,8 +49,14 @@ class Airplane:
                 print("Out of fuel ! Airplane crashed...")
 
     def simulating_airplane_movement(self):
-        pass
-
+        if self.quarter == "NW":
+            pass
+        elif self.quarter == "NE":
+            pass
+        elif self.quarter == "SW":
+            pass
+        elif self.quarter == "SE":
+            pass
 
     def __str__(self):
         return f"Airplane coordinates: {self.x}, {self.y}, {self.z}"
