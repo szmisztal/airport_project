@@ -42,26 +42,11 @@ class Airplane:
         elif self.x in range(0, 5001) and self.y in range(-5000, 0):
             return "SE"
 
-    def fuel_consumption_in_3_hours(self):
+    def fuel_consumption(self):
         current_time = datetime.datetime.now()
         time_difference = current_time - self.date_of_appearance
         if time_difference >= datetime.timedelta(seconds = 10800):
                 print("Out of fuel ! Airplane crashed...")
-
-    def simulating_airplane_movement(self):
-        if self.quarter == "NW":
-            if self.x < -2000:
-                pass
-            elif self.x == 2000:
-                pass
-            elif self.x > -2000:
-                pass
-        elif self.quarter == "NE":
-            pass
-        elif self.quarter == "SW":
-            pass
-        elif self.quarter == "SE":
-            pass
 
     def __str__(self):
         return f"Airplane coordinates (x, y ,z): {self.coordinates}"
