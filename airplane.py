@@ -50,7 +50,12 @@ class Airplane:
 
     def simulating_airplane_movement(self):
         if self.quarter == "NW":
-            pass
+            if self.x < -2000:
+                pass
+            elif self.x == 2000:
+                pass
+            elif self.x > -2000:
+                pass
         elif self.quarter == "NE":
             pass
         elif self.quarter == "SW":
@@ -59,7 +64,7 @@ class Airplane:
             pass
 
     def __str__(self):
-        return f"Airplane coordinates: {self.x}, {self.y}, {self.z}"
+        return f"Airplane coordinates (x, y ,z): {self.coordinates}"
 
     def __repr__(self):
         return str(self)
