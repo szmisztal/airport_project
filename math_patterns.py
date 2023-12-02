@@ -31,15 +31,7 @@ def simulating_airplane_movement(airplane, target, speed, time_interval, comment
             current_position.z += v_z * time_interval
             print(f"X: {current_position.x:.2f}, Y: {current_position.y:.2f}, Z: {current_position.z:.2f}")
 
-def simulating_landing(airport, airplane, air_corridor_N_or_S):
-    if air_corridor_N_or_S == "N":
-        airport.air_corridor_N.lock.acquire()
-    elif air_corridor_N_or_S == "S":
-        airport.air_corridor_S.lock.acquire()
-    airport.airport_lanes -= 1
+def simulating_landing(airport, airplane):
     simulating_airplane_movement(airplane, airport.zero_point, 200, 1)
-    if air_corridor_N_or_S == "N":
-        airport.air_corridor_N.lock.release()
-    elif air_corridor_N_or_S == "S":
-        airport.air_corridor_S.lock.release()
+
 
