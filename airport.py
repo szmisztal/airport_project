@@ -1,10 +1,8 @@
-from threading import Lock
 from math_patterns import euclidean_formula
 
 
 class Airport:
     def __init__(self):
-        self.lock = Lock()
         self.airport_area = AirportArea(-5000, 5000, -5000, 5000, 0, 5000)
         self.air_corridor_N = AirCorridor(-2000, 2000, 400, 500, 0, 2000)
         self.air_corridor_S = AirCorridor(-2000, 2000, -500, -400, 0, 2000)
@@ -13,7 +11,6 @@ class Airport:
         self.starting_landing_point_SW = CustomPoint(-2500, -450, 2000)
         self.starting_landing_point_SE = CustomPoint(2500, -450, 2000)
         self.zero_point = CustomPoint(0, 0 ,0)
-        self.airport_lanes = 2
         self.max_airplanes_number_in_the_air = 100
         self.airplanes_in_the_air_list = []
         self.crashed_airplanes = []
@@ -51,7 +48,6 @@ class AirportArea:
 
 class AirCorridor:
     def __init__(self, x1, x2, y1, y2, z1, z2):
-        self.lock = Lock()
         self.length = (x1, x2)
         self.width = (y1, y2)
         self.height = (z1, z2)
