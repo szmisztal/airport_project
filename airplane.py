@@ -3,17 +3,19 @@ import random
 
 
 class Airplane:
-    def __init__(self, x, y, z):
+    def __init__(self, id):
         self.date_of_appearance = datetime.datetime.now()
-        self.x = x
-        self.y = y
-        self.z = z
-        self.coordinates = (x, y, z)
+        self.id = id
+        self.init_coordinates = self.establish_init_airplane_coordinates()
+        self.x = self.init_coordinates["x"]
+        self.y = self.init_coordinates["y"]
+        self.z = self.init_coordinates["z"]
+        self.coordinates = (self.x, self.y, self.z)
         self.quarter = self.establish_airplane_quarter()
-        self.speed = 200
+        self.speed = 100
 
-    @classmethod
-    def establish_init_airplane_coordinates(cls):
+    @staticmethod
+    def establish_init_airplane_coordinates():
         height = random.randint(2000, 5000)
         random_int = random.randint(-5000, 5000)
         constant = 5000
@@ -46,10 +48,11 @@ class Airplane:
         current_time = datetime.datetime.now()
         time_difference = current_time - self.date_of_appearance
         if time_difference >= datetime.timedelta(seconds = 10800):
-                print("Out of fuel ! Airplane crashed...")
+            return True
+        return False
 
     def __str__(self):
-        return f"Airplane coordinates (x, y ,z): {self.coordinates}"
+        return f"Airplane '{self.id}'"
 
     def __repr__(self):
         return str(self)
