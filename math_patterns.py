@@ -9,11 +9,11 @@ def euclidean_formula(object_1, object_2):
     ))
     return distance
 
-def simulating_airplane_movement(airplane, target, speed, time_interval):
+def simulating_airplane_movement(airplane, target, time_interval = 1):
     movement_to_target = True
     while movement_to_target:
         distance = euclidean_formula(airplane, target)
-        if distance < speed * time_interval:
+        if distance < airplane.speed * time_interval:
             movement_to_target = False
         else:
             delta_x = target.x - airplane.x
@@ -21,18 +21,11 @@ def simulating_airplane_movement(airplane, target, speed, time_interval):
             delta_z = target.z - airplane.z
             angle_xy = math.atan2(delta_y, delta_x)
             angle_xz = math.atan2(delta_z, math.sqrt(pow(delta_x, 2) + pow(delta_y, 2)))
-            v_x = speed * math.cos(angle_xy) * math.cos(angle_xz)
-            v_y = speed * math.sin(angle_xy) * math.cos(angle_xz)
-            v_z = speed * math.sin(angle_xz)
+            v_x = airplane.speed * math.cos(angle_xy) * math.cos(angle_xz)
+            v_y = airplane.speed * math.sin(angle_xy) * math.cos(angle_xz)
+            v_z = airplane.speed * math.sin(angle_xz)
             airplane.x += v_x * time_interval
             airplane.y += v_y * time_interval
             airplane.z += v_z * time_interval
-
-def simulating_landing(airport, airplane):
-    simulating_airplane_movement(airplane, airport.zero_point, airplane.speed, 1)
-    if 0 <= airplane.z <= 50:
-        return True
-    elif airplane.z < 0:
-        return False
 
 
