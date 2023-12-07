@@ -1,3 +1,4 @@
+import itertools
 from math_patterns import euclidean_formula, simulating_airplane_movement
 
 
@@ -21,11 +22,17 @@ class Airport:
         self.crashed_airplanes = []
         self.airplanes_with_successfully_landing = []
 
-    def check_airplanes_number(self):
+    def check_current_number_of_the_airplanes_in_the_air(self):
         if len(self.airplanes_in_the_air_list) > self.max_airplanes_number_in_the_air:
             return False
         else:
             return True
+
+    def check_number_of_all_airplanes_in_the_airport(self):
+        all_airplanes_in_the_airport = len(self.airplanes_in_the_air_list) + \
+                                       len(self.crashed_airplanes) + \
+                                       len(self.airplanes_with_successfully_landing)
+        return all_airplanes_in_the_airport
 
     def establish_air_corridor_for_each_airplane(self, airplane):
         if airplane.quarter == "NW":
@@ -43,26 +50,23 @@ class Airport:
 
     def check_distance_between_airplanes(self):
         if len(self.airplanes_in_the_air_list) > 1:
-            for i, airplane_1 in enumerate(self.airplanes_in_the_air_list):
-                for j, airplane_2 in enumerate(self.airplanes_in_the_air_list):
-                    if i != j:
-                        distance = euclidean_formula(airplane_1, airplane_2)
-                        if 11 < distance < 100:
-                            self.avoid_collision(airplane_1, airplane_2)
-                        elif distance <= 10:
-                            self.crashed_airplanes.extend([airplane_1, airplane_2])
+            all_airplanes_combinations = list(itertools.combinations(self.airplanes_in_the_air_list, 2))
+            for airplane_combination in all_airplanes_combinations:
+                distance = euclidean_formula(airplane_combination[0], airplane_combination[1])
+                if 11 < distance < 100:
+                    self.avoid_collision(airplane_combination[0])
+                elif distance <= 10:
+                    self.crashed_airplanes.append(airplane_combination[0])
+                    self.crashed_airplanes.append(airplane_combination[1])
             self.remove_airplane_from_the_airplanes_the_air_list(self.crashed_airplanes)
 
-    def avoid_collision(self, airplane, avoidance_distance = 50):
-        for other_airplane in self.airplanes_in_the_air_list:
-            if airplane != other_airplane:
-                distance = euclidean_formula(airplane, other_airplane)
-                if distance < avoidance_distance:
-                    airplane.z += avoidance_distance
-                else:
-                    airplane.z -= avoidance_distance
-                return airplane
-        return airplane
+    def avoid_collision(self, airplane_1, avoidance_distance = 50):
+        airplanes_combinations = list(itertools.product(airplane_1, self.airplanes_in_the_air_list))
+        for airplane_combination in airplanes_combinations:
+            distance = euclidean_formula(airplane_combination[0].z + avoidance_distance, airplane_combination[1])
+            if airplane_combination[0] != airplane_combination[1] and distance > 150:
+                airplane_combination[0].z += avoidance_distance
+                return airplane_combination[0]
 
     def directing_the_plane_to_the_runaway(self, airplane):
         distance = euclidean_formula(airplane, airplane.initial_landing_point)
@@ -118,7 +122,4 @@ class CustomPoint:
         self.x = x
         self.y = y
         self.z = z
-
-
-
 
