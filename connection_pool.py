@@ -1,19 +1,24 @@
-import psycopg2
+import sqlite3
+from sqlite3 import Error
 import schedule
 from threading import Lock
-from conn_variables import user, password, host, port, database_name
+
 
 class Connection:
     def __init__(self):
-        self.connection = psycopg2.connect(
-            user = user,
-            password = password,
-            host = host,
-            port = port,
-            database = database_name
-        )
+        self.db_file = "airport_db.db"
+        self.connection = self.create_connection()
         self.cursor = self.connection.cursor()
         self.in_use = False
+
+    def create_connection(self):
+        try:
+            connection = sqlite3.connect(self.db_file)
+            return connection
+        except Error as e:
+            print(f"Error: {e}")
+            return None
+
 
 class ConnectionPool:
     def __init__(self, min_numbers_of_connections, max_number_of_connections):
