@@ -14,7 +14,7 @@ class Server:
         self.encode_format = encode_format
         self.is_running = True
         self.version = "0.0.7"
-        self.conn_pool = ConnectionPool(10, 100)
+        self.connection_pool = ConnectionPool(10, 100)
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
