@@ -1,5 +1,6 @@
 import itertools
 from math_patterns import euclidean_formula, simulating_airplane_movement
+from airplane import Airplane
 
 
 class Airport:
@@ -17,16 +18,17 @@ class Airport:
         self.waiting_sector_for_landing_SE = CustomSector(3000, 3500, -700, -900, 2200, 2500)
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
-        self.max_airplanes_number_in_the_air = 100
         self.airplanes_in_the_air_list = []
         self.crashed_airplanes = []
         self.airplanes_with_successfully_landing = []
+        self.all_airplanes_list = len(self.airplanes_in_the_air_list) + \
+                                  len(self.crashed_airplanes) + \
+                                  len(self.airplanes_with_successfully_landing)
 
-    def check_current_number_of_the_airplanes_in_the_air(self):
-        if len(self.airplanes_in_the_air_list) > self.max_airplanes_number_in_the_air:
-            return False
-        else:
-            return True
+    def create_airplane_object_and_append_it_to_list(self, initial_coordinates):
+        airplane = Airplane(**initial_coordinates)
+        airplane.establish_airplane_id(self.all_airplanes_list)
+        return airplane
 
     def check_number_of_all_airplanes_in_the_airport(self):
         all_airplanes_in_the_airport = len(self.airplanes_in_the_air_list) + \
