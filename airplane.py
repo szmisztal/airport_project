@@ -3,13 +3,12 @@ import random
 
 
 class Airplane:
-    def __init__(self, id):
+    def __init__(self, x, y, z):
         self.date_of_appearance = datetime.datetime.now()
-        self.id = id
-        self.init_coordinates = self.establish_init_airplane_coordinates()
-        self.x = self.init_coordinates["x"]
-        self.y = self.init_coordinates["y"]
-        self.z = self.init_coordinates["z"]
+        self.id = None
+        self.x = x
+        self.y = y
+        self.z = z
         self.coordinates = (self.x, self.y, self.z)
         self.quarter = self.establish_airplane_quarter()
         self.initial_landing_point = None
@@ -34,6 +33,11 @@ class Airplane:
             "z": choose_option[2]
         }
         return coordinates_dict
+
+    def establish_airplane_id(self, airplanes_list):
+        airplane_id = len(airplanes_list + 1)
+        self.id = airplane_id
+        return self.id
 
     def establish_airplane_quarter(self):
         if self.x in range(-5000, 0) and self.y in range(0, 5001):
