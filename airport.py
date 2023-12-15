@@ -21,34 +21,29 @@ class Airport:
         self.airplanes_in_the_air_list = []
         self.crashed_airplanes = []
         self.airplanes_with_successfully_landing = []
-        self.all_airplanes_list = len(self.airplanes_in_the_air_list) + \
-                                  len(self.crashed_airplanes) + \
-                                  len(self.airplanes_with_successfully_landing)
+        self.all_airplanes_number = len(self.airplanes_in_the_air_list) + \
+                                    len(self.crashed_airplanes) + \
+                                    len(self.airplanes_with_successfully_landing)
 
     def create_airplane_object_and_append_it_to_list(self, initial_coordinates):
         airplane = Airplane(**initial_coordinates)
-        airplane.establish_airplane_id(self.all_airplanes_list)
+        airplane.establish_airplane_id(self.all_airplanes_number)
+        self.airplanes_in_the_air_list.append(airplane)
         return airplane
-
-    def check_number_of_all_airplanes_in_the_airport(self):
-        all_airplanes_in_the_airport = len(self.airplanes_in_the_air_list) + \
-                                       len(self.crashed_airplanes) + \
-                                       len(self.airplanes_with_successfully_landing)
-        return all_airplanes_in_the_airport
 
     def establish_air_corridor_for_each_airplane(self, airplane):
         if airplane.quarter == "NW":
             airplane.initial_landing_point = self.initial_landing_point_NW
-            simulating_airplane_movement(airplane, airplane.initial_landing_point)
+            return simulating_airplane_movement(airplane, airplane.initial_landing_point)
         elif airplane.quarter == "NE":
             airplane.initial_landing_point = self.initial_landing_point_NE
-            simulating_airplane_movement(airplane, airplane.initial_landing_point)
+            return simulating_airplane_movement(airplane, airplane.initial_landing_point)
         elif airplane.quarter == "SW":
             airplane.initial_landing_point = self.initial_landing_point_SW
-            simulating_airplane_movement(airplane, airplane.initial_landing_point)
+            return simulating_airplane_movement(airplane, airplane.initial_landing_point)
         elif airplane.quarter == "SE":
             airplane.initial_landing_point = self.initial_landing_point_SE
-            simulating_airplane_movement(airplane, airplane.initial_landing_point)
+            return simulating_airplane_movement(airplane, airplane.initial_landing_point)
 
     def check_distance_between_airplanes(self):
         if len(self.airplanes_in_the_air_list) > 1:
@@ -117,6 +112,9 @@ class CustomSector:
         self.length = (x1, x2)
         self.width = (y1, y2)
         self.height = (z1, z2)
+        self.x = (x1 + x2) / 2
+        self.y = (y1 + y2) / 2
+        self.z = (z1 + z2) / 2
 
 
 class CustomPoint:
