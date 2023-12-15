@@ -19,9 +19,9 @@ class Client:
 
     def read_server_response(self, dict_data):
         deserialized_data = self.data_utils.deserialize_json(dict_data)
-        if isinstance(deserialized_data, dict):
-            for key, value in deserialized_data.items():
-                print(f">>> {key}: {value}")
+        for key, value in deserialized_data.items():
+            print(f">>> {key}: {value}")
+        return deserialized_data
 
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
@@ -32,10 +32,16 @@ class Client:
             client_request = self.communication_utils.initial_coordinates(initial_coordinates)
             client_socket.sendall(self.data_utils.serialize_to_json(client_request))
             while self.is_running:
-                server_response = client_socket.recv(self.BUFFER)
-
-    def stop(self):
+                server_response_json = client_socket.recv(self.BUFFER)
+                server_response = self.read_server_response(server_response_json)
+                if "Crash !" in server_response["message"] or "Success !" in server_response["message"]:
+                    self.stop(client_socket)
+                    
+    def stop(self, client_socket):
+        print("Client`s out...")
         self.is_running = False
+        client_socket.close()
+
 
 
 
