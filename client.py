@@ -36,7 +36,7 @@ class Client:
                 server_response = self.read_server_response(server_response_json)
                 if "Crash !" in server_response["message"] or "Success !" in server_response["message"]:
                     self.stop(client_socket)
-                    
+
     def stop(self, client_socket):
         print("Client`s out...")
         self.is_running = False
