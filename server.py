@@ -21,6 +21,20 @@ class Server:
         self.connection_pool = ConnectionPool(10, 100)
         self.airport = Airport()
 
+    def send_message_to_client(self, client_socket, dict_data):
+        message = self.data_utils.serialize_to_json(dict_data)
+        client_socket.sendall(message)
+
+    def close_client_socket_when_airplane_crashed_or_successfully_landed(self, airplane, client_socket, connection):
+        if airplane in self.airport.crashed_airplanes or airplane in self.airport.airplanes_with_successfully_landing:
+            if airplane in self.airport.crashed_airplanes:
+                crash_message = self.communication_utils.airplane_crashed()
+                self.send_message_to_client(client_socket, crash_message)
+            elif airplane in self.airport.airplanes_with_successfully_landing:
+                landing_message = self.communication_utils.successfully_landing()
+                self.send_message_to_client(client_socket, landing_message)
+            self.connection_pool.release_connection(connection)
+
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             print("Server`s up")
@@ -29,14 +43,16 @@ class Server:
             client_socket, address = server_socket.accept()
             with client_socket:
                 connection = self.connection_pool.get_connection()
-                welcome_message = self.data_utils.serialize_to_json(self.communication_utils.welcome_protocol())
-                client_socket.sendall(welcome_message)
+                welcome_message = self.communication_utils.welcome_protocol()
+                self.send_message_to_client(client_socket, welcome_message)
                 initial_coordinates_json = client_socket.recv(self.BUFFER)
                 initial_coordinates = self.data_utils.deserialize_json(initial_coordinates_json)
-                self.airport.create_airplane_object_and_append_it_to_list(initial_coordinates)
+                print(initial_coordinates)
+                airplane = self.airport.create_airplane_object_and_append_it_to_list(initial_coordinates["body"])
                 while self.is_running:
+                    print(airplane.coordinates)
                     self.airport.airport_manager()
-
+                    self.close_client_socket_when_airplane_crashed_or_successfully_landed(airplane, client_socket, connection)
 
 
 
