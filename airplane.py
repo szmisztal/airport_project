@@ -35,7 +35,7 @@ class Airplane:
         return coordinates_dict
 
     def establish_airplane_id(self, airplanes_list):
-        airplane_id = len(airplanes_list + 1)
+        airplane_id = airplanes_list + 1
         self.id = airplane_id
         return self.id
 
