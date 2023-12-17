@@ -10,12 +10,12 @@ def euclidean_formula(object_1, object_2):
     return distance
 
 def simulating_airplane_movement(airplane, target, time_interval = 1):
-    # movement_to_target = True
-    # while movement_to_target:
-    #     distance = euclidean_formula(airplane, target)
-    #     if distance < airplane.speed * time_interval:
-    #         movement_to_target = False
-    #     else:
+    movement_to_target = True
+    while movement_to_target:
+        distance = euclidean_formula(airplane, target)
+        if distance < airplane.speed * time_interval:
+            movement_to_target = False
+        else:
             delta_x = target.x - airplane.x
             delta_y = target.y - airplane.y
             delta_z = target.z - airplane.z
