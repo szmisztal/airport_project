@@ -1,5 +1,5 @@
 class CommunicationUtils:
-    def protocol_template(self, message = "null", body = "null"):
+    def protocol_template(self, message = None, body = None):
         template = {
             "message": message,
             "body": body
@@ -12,10 +12,10 @@ class ServerProtocols(CommunicationUtils):
         return self.protocol_template(message = "Welcome", body = "Submit your coordinates")
 
     def airplane_crashed(self):
-        return self.protocol_template(message = "Crash !", body = "Airplane`s destroyed...")
+        return self.protocol_template(message = "Crash !", body = "Airplane crashed...")
 
     def successfully_landing(self):
-        return self.protocol_template(message = "Success !", body = "You`re successfully landing")
+        return self.protocol_template(message = "Success !", body = "You`re successfully landed.")
 
 
 class ClientProtocols(CommunicationUtils):
