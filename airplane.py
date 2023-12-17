@@ -3,12 +3,12 @@ import random
 
 
 class Airplane:
-    def __init__(self, x, y, z):
+    def __init__(self, coordinates):
         self.date_of_appearance = datetime.datetime.now()
         self.id = None
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = coordinates["x"]
+        self.y = coordinates["y"]
+        self.z = coordinates["z"]
         self.coordinates = (self.x, self.y, self.z)
         self.quarter = self.establish_airplane_quarter()
         self.initial_landing_point = None
@@ -57,7 +57,7 @@ class Airplane:
         return False
 
     def __str__(self):
-        return f"AirplaneID: '{self.id}'"
+        return f"Airplane_ID: '{self.id}'"
 
     def __repr__(self):
         return str(self)
