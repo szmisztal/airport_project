@@ -1,3 +1,4 @@
+from inspect import signature
 import itertools
 from math_patterns import euclidean_formula, simulating_airplane_movement
 from airplane import Airplane
@@ -21,15 +22,21 @@ class Airport:
         self.airplanes_in_the_air_list = []
         self.crashed_airplanes = []
         self.airplanes_with_successfully_landing = []
-        self.all_airplanes_number = len(self.airplanes_in_the_air_list) + \
-                                    len(self.crashed_airplanes) + \
-                                    len(self.airplanes_with_successfully_landing)
+        self.number_of_all_planes = int()
 
     def create_airplane_object_and_append_it_to_list(self, initial_coordinates):
-        airplane = Airplane(**initial_coordinates)
-        airplane.establish_airplane_id(self.all_airplanes_number)
+        airplane = Airplane(initial_coordinates)
+        airplane.establish_airplane_id(self.number_of_all_planes)
         self.airplanes_in_the_air_list.append(airplane)
+        self.update_number_of_planes()
         return airplane
+
+    def update_number_of_planes(self):
+        self.number_of_all_planes = (
+            len(self.airplanes_in_the_air_list) +
+            len(self.crashed_airplanes) +
+            len(self.airplanes_with_successfully_landing)
+        )
 
     def establish_air_corridor_for_each_airplane(self, airplane):
         if airplane.quarter == "NW":
