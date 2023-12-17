@@ -51,9 +51,17 @@ class Server:
                 airplane = self.airport.create_airplane_object_and_append_it_to_list(initial_coordinates["body"])
                 while self.is_running:
                     print(airplane.coordinates)
-                    self.airport.airport_manager()
-                    self.close_client_socket_when_airplane_crashed_or_successfully_landed(airplane, client_socket, connection)
+                    break
+                    # for a in self.airport.airplanes_in_the_air_list:
+                    #     print(a.coordinates)
+                    #     a.x += 100
+                    #     a.y += 100
+                    #     a.z -= 10
+                    #     if a.x == 4000 or a.y == 4000 or a.z == 2000:
+                    #         break
 
+                    # self.airport.airport_manager()
+                    # self.close_client_socket_when_airplane_crashed_or_successfully_landed(airplane, client_socket, connection)
 
 
 if __name__ == "__main__":
