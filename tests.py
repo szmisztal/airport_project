@@ -4,7 +4,7 @@ import math_patterns
 from airport import Airport
 from airplane import Airplane
 # from connection_pool import ConnectionPool
-from math_patterns import simulating_airplane_movement
+from math_patterns import simulating_airplane_movement, euclidean_formula
 # conn = ConnectionPool(10, 100)
 # print(conn.connections_list)
 
@@ -18,11 +18,8 @@ airplane_1 = airport.airplanes_in_the_air_list[0]
 airplane_2 = airport.airplanes_in_the_air_list[1]
 movement = True
 while movement:
-    math_patterns.simulating_airplane_movement(airplane_1, airport.zero_point_N)
-    math_patterns.simulating_airplane_movement(airplane_2, airport.zero_point_S)
-    print(airplane_1.coordinates)
-    print(airplane_2.coordinates)
+    airport.airport_manager()
+    print(airplane_1.x, airplane_1.y, airplane_1.z)
+    print(airplane_2.x, airplane_2.y, airplane_2.z)
     time.sleep(1)
-    if airplane_1.x == 4000 or airplane_1.y == 4000 or airplane_1.z == 2000 or airplane_2.y == 4000 or airplane_2.y == 4000 or airplane_2.z == 2000:
-        movement = False
 
