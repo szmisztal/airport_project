@@ -50,7 +50,7 @@ class ConnectionPool:
                 new_connection.in_use = True
                 self.connections_in_use_list.append(new_connection)
                 return new_connection
-            else:
+            elif len(self.connections_list) + len(self.connections_in_use_list) >= self.max_number_of_connections:
                 return False
         finally:
             self.lock.release()
