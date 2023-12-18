@@ -9,7 +9,7 @@ class Airplane:
         self.x = coordinates["x"]
         self.y = coordinates["y"]
         self.z = coordinates["z"]
-        self.coordinates = (self.x, self.y, self.z)
+        self.coordinates = self.x, self.y, self.z
         self.quarter = self.establish_airplane_quarter()
         self.initial_landing_point = None
         self.speed = 100
@@ -53,12 +53,12 @@ class Airplane:
         current_time = datetime.datetime.now()
         time_difference = current_time - self.date_of_appearance
         if time_difference >= datetime.timedelta(seconds = 10800):
-            return True
-        return False
+            return False
+        return True
 
     def __str__(self):
         return f"Airplane_ID: '{self.id}'"
 
-    def __repr__(self):
-        return str(self)
+    # def __repr__(self):
+    #     return str(self)
 
