@@ -53,7 +53,6 @@ class Server:
                 if connection == False:
                     self.communication_utils.connections_limit()
                     client_socket.close()
-                    return
                 else:
                     welcome_message = self.communication_utils.welcome_protocol()
                     self.send_message_to_client(client_socket, welcome_message)
