@@ -5,8 +5,8 @@ from threading import Lock
 
 
 class Connection:
-    def __init__(self):
-        self.db_file = "airport_db.db"
+    def __init__(self, db_file = "airport_db.db"):
+        self.db_file = db_file
         self.connection = self.create_connection()
         self.cursor = self.connection.cursor()
         self.in_use = False
@@ -51,7 +51,7 @@ class ConnectionPool:
                 self.connections_in_use_list.append(new_connection)
                 return new_connection
             else:
-                print("There are no free connections at the moment, please try again soon")
+                return False
         finally:
             self.lock.release()
 
