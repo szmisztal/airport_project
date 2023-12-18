@@ -1,4 +1,3 @@
-from inspect import signature
 import itertools
 from math_patterns import euclidean_formula, simulating_airplane_movement
 from airplane import Airplane
@@ -38,7 +37,7 @@ class Airport:
             len(self.airplanes_with_successfully_landing)
         )
 
-    def establish_air_corridor_for_each_airplane(self, airplane):
+    def direct_airplanes_to_air_corridors(self, airplane):
         if airplane.quarter == "NW":
             airplane.initial_landing_point = self.initial_landing_point_NW
             return simulating_airplane_movement(airplane, airplane.initial_landing_point)
@@ -62,7 +61,7 @@ class Airport:
                 elif distance <= 10:
                     self.crashed_airplanes.append(airplane_combination[0])
                     self.crashed_airplanes.append(airplane_combination[1])
-            self.remove_airplane_from_the_airplanes_the_air_list(self.crashed_airplanes)
+            self.remove_airplane_from_the_airplanes_in_the_air_list(self.crashed_airplanes)
 
     def avoid_collision(self, airplane_1, avoidance_distance = 50):
         airplanes_combinations = list(itertools.product(airplane_1, self.airplanes_in_the_air_list))
@@ -72,7 +71,7 @@ class Airport:
                 airplane_combination[0].z += avoidance_distance
                 return airplane_combination[0]
 
-    def directing_the_plane_to_the_runaway(self, airplane):
+    def directing_airplanes_to_the_runaway(self, airplane):
         distance = euclidean_formula(airplane, airplane.initial_landing_point)
         if distance < 100:
             if airplane.quarter in ["NW", "NE"] and self.air_corridor_N.occupied == True:
@@ -98,19 +97,26 @@ class Airport:
                     self.airplanes_with_successfully_landing.append(airplane)
                 elif airplane.z < 0:
                     self.crashed_airplanes.append(airplane)
-                self.remove_airplane_from_the_airplanes_the_air_list(self.airplanes_with_successfully_landing)
-                self.remove_airplane_from_the_airplanes_the_air_list(self.crashed_airplanes)
+                self.remove_airplane_from_the_airplanes_in_the_air_list(self.airplanes_with_successfully_landing)
+                self.remove_airplane_from_the_airplanes_in_the_air_list(self.crashed_airplanes)
 
-    def remove_airplane_from_the_airplanes_the_air_list(self, target_group):
+    def remove_airplane_from_the_airplanes_in_the_air_list(self, target_group):
         for airplane in target_group:
             if airplane in self.airplanes_in_the_air_list:
                 self.airplanes_in_the_air_list.remove(airplane)
 
+    def check_airplanes_fuel_reserves(self, airplane):
+        fuel_reserve = airplane.fuel_consumption()
+        if fuel_reserve == False:
+            self.crashed_airplanes.append(airplane)
+            self.remove_airplane_from_the_airplanes_in_the_air_list(self.crashed_airplanes)
+
     def airport_manager(self):
         for airplane in self.airplanes_in_the_air_list:
-            self.establish_air_corridor_for_each_airplane(airplane)
+            self.check_airplanes_fuel_reserves(airplane)
+            self.direct_airplanes_to_air_corridors(airplane)
             self.check_distance_between_airplanes()
-            self.directing_the_plane_to_the_runaway(airplane)
+            self.directing_airplanes_to_the_runaway(airplane)
 
 
 class CustomSector:
