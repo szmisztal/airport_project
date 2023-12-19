@@ -1,13 +1,11 @@
 import itertools
-from math_patterns import euclidean_formula, simulating_airplane_movement
+from math_patterns import euclidean_formula, movement_formula
 from airplane import Airplane
 
 
 class Airport:
     def __init__(self):
         self.airport_area = CustomSector(-5000, 5000, -5000, 5000, 0, 5000)
-        self.air_corridor_N = CustomSector(-2000, 2000, 400, 500, 0, 2000)
-        self.air_corridor_S = CustomSector(-2000, 2000, -500, -400, 0, 2000)
         self.initial_landing_point_NW = CustomPoint(-2500, 450, 2000)
         self.initial_landing_point_NE = CustomPoint(2500, 450, 2000)
         self.initial_landing_point_SW = CustomPoint(-2500, -450, 2000)
@@ -16,6 +14,9 @@ class Airport:
         self.waiting_sector_for_landing_NE = CustomSector(3000, 3500, 700, 900, 2200, 2500)
         self.waiting_sector_for_landing_SW = CustomSector(-3500, -3000, -700, -900, 2200, 2500)
         self.waiting_sector_for_landing_SE = CustomSector(3000, 3500, -700, -900, 2200, 2500)
+        self.air_corridor_N = CustomSector(-2000, 2000, 400, 500, 0, 2000)
+        self.air_corridor_S = CustomSector(-2000, 2000, -500, -400, 0, 2000)
+        self.air_corridors_list = [self.air_corridor_N, self.air_corridor_S]
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
         self.airplanes_in_the_air_list = []
@@ -23,9 +24,10 @@ class Airport:
         self.airplanes_with_successfully_landing = []
         self.number_of_all_planes = int()
 
-    def create_airplane_object_and_append_it_to_list(self, initial_coordinates):
+    def create_airplane_object_and_append_it_to_list(self, initial_coordinates, number_of_airplanes_in_db):
         airplane = Airplane(initial_coordinates)
-        airplane.establish_airplane_id(self.number_of_all_planes)
+        airplane.establish_airplane_id(number_of_airplanes_in_db)
+        self.establish_all_points_and_sectors_to_move_for_airplane(airplane)
         self.airplanes_in_the_air_list.append(airplane)
         self.update_number_of_planes()
         return airplane
@@ -37,19 +39,67 @@ class Airport:
             len(self.airplanes_with_successfully_landing)
         )
 
-    def direct_airplanes_to_air_corridors(self, airplane):
+    def establish_all_points_and_sectors_to_move_for_airplane(self, airplane):
         if airplane.quarter == "NW":
             airplane.initial_landing_point = self.initial_landing_point_NW
-            return simulating_airplane_movement(airplane, airplane.initial_landing_point)
+            airplane.air_corridor = self.air_corridor_N
+            airplane.zero_point = self.zero_point_N
         elif airplane.quarter == "NE":
             airplane.initial_landing_point = self.initial_landing_point_NE
-            return simulating_airplane_movement(airplane, airplane.initial_landing_point)
+            airplane.air_corridor = self.air_corridor_N
+            airplane.zero_point = self.zero_point_N
         elif airplane.quarter == "SW":
             airplane.initial_landing_point = self.initial_landing_point_SW
-            return simulating_airplane_movement(airplane, airplane.initial_landing_point)
+            airplane.air_corridor = self.air_corridor_S
+            airplane.zero_point = self.zero_point_S
         elif airplane.quarter == "SE":
             airplane.initial_landing_point = self.initial_landing_point_SE
-            return simulating_airplane_movement(airplane, airplane.initial_landing_point)
+            airplane.air_corridor = self.air_corridor_S
+            airplane.zero_point = self.zero_point_S
+
+    def simulate_airplanes_movement(self, airplane):
+        self.check_airplanes_fuel_reserves(airplane)
+        self.check_distance_between_airplanes()
+        distance = euclidean_formula(airplane, airplane.initial_landing_point)
+        if distance > 250 and airplane.move_to_initial_landing_point == True:
+            movement_formula(airplane, airplane.initial_landing_point)
+        elif distance <= 250 and airplane.move_to_initial_landing_point == True:
+            if airplane.quarter in ["NW", "NE"] and self.air_corridor_N.occupied == False:
+                self.direct_airplane_to_runaway(airplane, self.air_corridor_N)
+            elif airplane.quarter in ["SW", "SE"] and self.air_corridor_S.occupied == False:
+                self.direct_airplane_to_runaway(airplane, self.air_corridor_S)
+            elif airplane.quarter in ["NW", "NE"] and self.air_corridor_N.occupied == True:
+                self.direct_airplane_to_waiting_sector(airplane, self.air_corridor_N)
+            elif airplane.quarter in ["SW", "SE"] and self.air_corridor_S.occupied == True:
+                self.direct_airplane_to_waiting_sector(airplane, self.air_corridor_S)
+
+    def direct_airplane_to_runaway(self, airplane, air_corridor):
+        air_corridor.occupied = True
+        airplane.move_to_initial_landing_point = False
+        airplane.move_to_runaway = True
+        distance = euclidean_formula(airplane, airplane.zero_point)
+        if distance > 50:
+            movement_formula(airplane, airplane.zero_point)
+        elif 0 <= airplane.z <= 50 and distance <= 50:
+            self.airplanes_with_successfully_landing.append(airplane)
+        elif airplane.z < 0:
+            self.crashed_airplanes.append(airplane)
+        self.remove_airplane_from_the_airplanes_in_the_air_list(self.airplanes_with_successfully_landing)
+        self.remove_airplane_from_the_airplanes_in_the_air_list(self.crashed_airplanes)
+        return airplane
+
+    def direct_airplane_to_waiting_sector(self, airplane, air_corridor):
+        airplane.move_to_initial_landing_point = False
+        airplane.move_to_waiting_sector = True
+        distance = euclidean_formula(airplane, airplane.move_to_waiting_sector)
+        if distance > 100:
+            movement_formula(airplane, airplane.move_to_waiting_sector)
+        if 0 <= distance <= 100 and air_corridor.occupied == False:
+            airplane.move_to_waiting_sector = False
+            airplane.move_to_initial_landing_point = True
+        else:
+            pass
+        return airplane
 
     def check_distance_between_airplanes(self):
         if len(self.airplanes_in_the_air_list) > 1:
@@ -64,41 +114,16 @@ class Airport:
             self.remove_airplane_from_the_airplanes_in_the_air_list(self.crashed_airplanes)
 
     def avoid_collision(self, airplane_1, avoidance_distance = 50):
-        airplanes_combinations = list(itertools.product(airplane_1, self.airplanes_in_the_air_list))
-        for airplane_combination in airplanes_combinations:
-            distance = euclidean_formula(airplane_combination[0].z + avoidance_distance, airplane_combination[1])
-            if airplane_combination[0] != airplane_combination[1] and distance > 150:
-                airplane_combination[0].z += avoidance_distance
-                return airplane_combination[0]
-
-    def directing_airplanes_to_the_runaway(self, airplane):
-        distance = euclidean_formula(airplane, airplane.initial_landing_point)
-        if distance < 100:
-            if airplane.quarter in ["NW", "NE"] and self.air_corridor_N.occupied == True:
-                if airplane.quarter == "NW":
-                    simulating_airplane_movement(airplane, self.waiting_sector_for_landing_NW)
-                elif airplane.quarter == "NE":
-                    simulating_airplane_movement(airplane, self.waiting_sector_for_landing_NE)
-            elif airplane.quarter in ["SW", "SE"] and self.air_corridor_S.occupied == True:
-                if airplane.quarter == "SW":
-                    simulating_airplane_movement(airplane, self.waiting_sector_for_landing_SW)
-                elif airplane.quarter == "SE":
-                    simulating_airplane_movement(airplane, self.waiting_sector_for_landing_SE)
-            else:
-                if airplane.quarter in ["NW", "NE"]:
-                    self.air_corridor_N.occupied = True
-                    simulating_airplane_movement(airplane, self.zero_point_N)
-                    distance = euclidean_formula(airplane, self.zero_point_N)
-                elif airplane.quarter in ["SW", "SE"]:
-                    self.air_corridor_S.occupied = True
-                    simulating_airplane_movement(airplane, self.zero_point_S)
-                    distance = euclidean_formula(airplane, self.zero_point_S)
-                if 0 <= airplane.z <= 50 and distance <= 50:
-                    self.airplanes_with_successfully_landing.append(airplane)
-                elif airplane.z < 0:
-                    self.crashed_airplanes.append(airplane)
-                self.remove_airplane_from_the_airplanes_in_the_air_list(self.airplanes_with_successfully_landing)
-                self.remove_airplane_from_the_airplanes_in_the_air_list(self.crashed_airplanes)
+        airplane_1.x += avoidance_distance
+        airplane_1.y += avoidance_distance
+        airplane_1.z += 10
+        return airplane_1.x, airplane_1.y, airplane_1.z
+        # airplanes_combinations = list(itertools.product(airplane_1, self.airplanes_in_the_air_list))
+        # for airplane_combination in airplanes_combinations:
+        #     distance = euclidean_formula(airplane_combination[0].z + avoidance_distance, airplane_combination[1])
+        #     if airplane_combination[0] != airplane_combination[1] and distance > 150:
+        #         airplane_combination[0].z += avoidance_distance
+        #         return airplane_combination[0]
 
     def remove_airplane_from_the_airplanes_in_the_air_list(self, target_group):
         for airplane in target_group:
@@ -113,10 +138,7 @@ class Airport:
 
     def airport_manager(self):
         for airplane in self.airplanes_in_the_air_list:
-            self.check_airplanes_fuel_reserves(airplane)
-            self.direct_airplanes_to_air_corridors(airplane)
-            self.check_distance_between_airplanes()
-            self.directing_airplanes_to_the_runaway(airplane)
+            self.simulate_airplanes_movement(airplane)
 
 
 class CustomSector:
