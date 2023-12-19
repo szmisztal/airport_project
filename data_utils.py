@@ -21,9 +21,9 @@ class DataUtils:
             except Error as e:
                 print(f"Error: {e}")
                 connection.connection.rollback()
-            finally:
-                if connection.cursor:
-                    connection.cursor.close()
+            # finally:
+            #     if connection.cursor:
+            #         connection.cursor.close()
 
     def create_connections_table(self, connection):
         query = """CREATE TABLE IF NOT EXISTS connections(
@@ -41,3 +41,10 @@ class DataUtils:
     def update_status(self, connection, status, airplane):
         query = "UPDATE connections SET status = ? WHERE connection_id = (SELECT connection_id FROM connections WHERE airplane_id = ?)"
         self.execute_sql_query(connection, query, (status, airplane))
+
+    def get_all_airplanes_list(self, connection):
+        query = "SELECT * FROM connections"
+        airplanes_list = self.execute_sql_query(connection, query, fetch_option = "fetchall")
+        if airplanes_list == None:
+            return 0
+        return len(airplanes_list)
