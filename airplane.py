@@ -12,7 +12,12 @@ class Airplane:
         self.coordinates = self.x, self.y, self.z
         self.quarter = self.establish_airplane_quarter()
         self.initial_landing_point = None
+        self.air_corridor = None
+        self.zero_point = None
         self.speed = 100
+        self.move_to_initial_landing_point = True
+        self.move_to_waiting_sector = False
+        self.move_to_runaway = False
 
     @staticmethod
     def establish_init_airplane_coordinates():
@@ -34,8 +39,8 @@ class Airplane:
         }
         return coordinates_dict
 
-    def establish_airplane_id(self, airplanes_list):
-        airplane_id = airplanes_list + 1
+    def establish_airplane_id(self, airplanes_in_db_number):
+        airplane_id = airplanes_in_db_number + 1
         self.id = airplane_id
         return self.id
 
@@ -58,7 +63,4 @@ class Airplane:
 
     def __str__(self):
         return f"Airplane_ID: '{self.id}'"
-
-    # def __repr__(self):
-    #     return str(self)
 
