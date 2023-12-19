@@ -9,7 +9,7 @@ def euclidean_formula(object_1, object_2):
     ))
     return round(distance)
 
-def simulating_airplane_movement(airplane, target, time_interval = 1):
+def movement_formula(airplane, target, time_interval = 1):
     # movement_to_target = True
     # while movement_to_target:
     #     distance = euclidean_formula(airplane, target)
