@@ -12,7 +12,6 @@ class Airplane:
         self.coordinates = self.x, self.y, self.z
         self.quarter = self.establish_airplane_quarter()
         self.initial_landing_point = None
-        self.air_corridor = None
         self.waiting_sector = None
         self.zero_point = None
         self.speed = 100
