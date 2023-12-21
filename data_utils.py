@@ -40,7 +40,7 @@ class DataUtils:
 
     def update_status(self, connection, status, airplane):
         query = "UPDATE connections SET status = ? WHERE connection_id = (SELECT connection_id FROM connections WHERE airplane_id = ?)"
-        self.execute_sql_query(connection, query, (status, airplane))
+        self.execute_sql_query(connection, query, (status, str(airplane)))
 
     def get_all_airplanes_list(self, connection):
         query = "SELECT * FROM connections"
