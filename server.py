@@ -1,11 +1,20 @@
 import datetime
 import socket as s
+import threading
 import time
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from data_utils import DataUtils
 from connection_pool import ConnectionPool, Connection
 from communication_utils import ServerProtocols
 from airport import Airport
+
+
+class ClientHandler(threading.Thread):
+    def __init__(self, client_socket, address):
+        super().__init__()
+        self.client_socket = client_socket
+        self.address = address
+        self.data_utils = DataUtils()
 
 
 class Server:
@@ -29,43 +38,32 @@ class Server:
         message = self.data_utils.serialize_to_json(dict_data)
         client_socket.sendall(message)
 
-    def close_client_socket_when_airplane_crashed_or_successfully_landed(self, airplane, client_socket, connection):
+    def close_client_socket_when_airplane_crashed_or_successfully_landed(self, airplane, client_socket):
         if airplane in self.airport.crashed_airplanes or airplane in self.airport.airplanes_with_successfully_landing:
             if airplane in self.airport.crashed_airplanes:
                 crash_message = self.communication_utils.airplane_crashed()
                 self.send_message_to_client(client_socket, crash_message)
-                self.data_utils.update_status(connection, "Crashed", airplane)
             elif airplane in self.airport.airplanes_with_successfully_landing:
                 landing_message = self.communication_utils.successfully_landing()
                 self.send_message_to_client(client_socket, landing_message)
-                self.data_utils.update_status(connection, "Landed", airplane)
-            self.connection_pool.release_connection(connection)
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
-            self.data_utils.create_connections_table(self.server_connection)
             print("Server`s up".upper())
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
             client_socket, address = server_socket.accept()
             with client_socket:
-                connection = self.connection_pool.get_connection()
-                if connection == False:
-                    self.communication_utils.connections_limit()
-                    client_socket.close()
-                else:
                     welcome_message = self.communication_utils.welcome_protocol()
                     self.send_message_to_client(client_socket, welcome_message)
                     initial_coordinates_json = client_socket.recv(self.BUFFER)
                     initial_coordinates = self.data_utils.deserialize_json(initial_coordinates_json)
-                    airplanes_number = self.data_utils.get_all_airplanes_list(self.server_connection)
-                    airplane = self.airport.create_airplane_object_and_append_it_to_list(initial_coordinates["body"], airplanes_number)
-                    self.data_utils.add_new_connection_to_db(connection, str(airplane))
+                    airplane = self.airport.create_airplane_object_and_append_it_to_list(initial_coordinates["body"])
                     while self.is_running:
                         self.airport.airport_manager()
                         print(airplane.x, airplane.y, airplane.z)
                         print(airplane.move_to_initial_landing_point, airplane.move_to_runaway)
-                        self.close_client_socket_when_airplane_crashed_or_successfully_landed(airplane, client_socket, connection)
+                        self.close_client_socket_when_airplane_crashed_or_successfully_landed(airplane, client_socket)
                         time.sleep(1)
                         self.stop(server_socket)
 
