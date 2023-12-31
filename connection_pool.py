@@ -3,23 +3,6 @@ from sqlite3 import Error
 import schedule
 from threading import Lock
 
-
-class Connection:
-    def __init__(self, db_file = "airport_db.db"):
-        self.db_file = db_file
-        self.connection = self.create_connection()
-        self.cursor = self.connection.cursor()
-        self.in_use = False
-
-    def create_connection(self):
-        try:
-            connection = sqlite3.connect(self.db_file)
-            return connection
-        except Error as e:
-            print(f"Error: {e}")
-            return None
-
-
 class ConnectionPool:
     def __init__(self, min_numbers_of_connections, max_number_of_connections):
         self.connections_list = []
@@ -32,7 +15,6 @@ class ConnectionPool:
 
     def create_start_connections(self):
         for _ in range(self.min_number_of_connections):
-            connection = Connection()
             self.connections_list.append(connection)
 
     def get_connection(self):
