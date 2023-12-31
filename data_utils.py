@@ -1,50 +1,65 @@
 import json
+import sqlite3
 from sqlite3 import Error
 from variables import encode_format
 
 
 class DataUtils:
+    def __init__(self, db_file = "airport_db.db"):
+        self.db_file = db_file
+        self.connection = self.create_connection()
+        self.cursor = self.connection.cursor()
+        self.in_use = False
+
     def serialize_to_json(self, dict_data):
         return json.dumps(dict_data).encode(encode_format)
 
     def deserialize_json(self, dict_data):
         return json.loads(dict_data)
 
-    def execute_sql_query(self, connection, query, *args, fetch_option = None):
+    def create_connection(self):
+        try:
+            connection = sqlite3.connect(self.db_file)
+            return connection
+        except Error as e:
+            print(f"Error: {e}")
+            return None
+
+    def execute_sql_query(self, query, *args, fetch_option = None):
             try:
-                connection.cursor.execute(query, *args)
-                connection.connection.commit()
+                self.cursor.execute(query, *args)
+                self.connection.commit()
                 if fetch_option == "fetchone":
-                    return connection.cursor.fetchone()
+                    return self.cursor.fetchone()
                 elif fetch_option == "fetchall":
-                    return connection.cursor.fetchall()
+                    return self.cursor.fetchall()
             except Error as e:
                 print(f"Error: {e}")
-                connection.connection.rollback()
-            # finally:
-            #     if connection.cursor:
-            #         connection.cursor.close()
+                self.connection.rollback()
+            finally:
+                self.cursor.close()
+                self.connection.close()
 
-    def create_connections_table(self, connection):
+    def create_connections_table(self):
         query = """CREATE TABLE IF NOT EXISTS connections(
                    connection_id INTEGER PRIMARY KEY,
                    connection_date DATE NOT NULL DEFAULT CURRENT_DATE,
                    airplane_id VARCHAR NOT NULL,
                    status VARCHAR DEFAULT NULL
                    );"""
-        self.execute_sql_query(connection, query)
+        self.execute_sql_query(query)
 
-    def add_new_connection_to_db(self, connection, airplane):
+    def add_new_connection_to_db(self, airplane):
         query = "INSERT INTO connections (airplane_id) VALUES (?)"
-        self.execute_sql_query(connection, query, (airplane, ))
+        self.execute_sql_query(query, (airplane, ))
 
-    def update_status(self, connection, status, airplane):
+    def update_status(self, status, airplane):
         query = "UPDATE connections SET status = ? WHERE connection_id = (SELECT connection_id FROM connections WHERE airplane_id = ?)"
-        self.execute_sql_query(connection, query, (status, str(airplane)))
+        self.execute_sql_query(query, (status, str(airplane)))
 
-    def get_all_airplanes_list(self, connection):
+    def get_all_airplanes_list(self):
         query = "SELECT * FROM connections"
-        airplanes_list = self.execute_sql_query(connection, query, fetch_option = "fetchall")
+        airplanes_list = self.execute_sql_query(query, fetch_option = "fetchall")
         if airplanes_list == None:
             return 0
         return len(airplanes_list)
