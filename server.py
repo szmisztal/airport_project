@@ -10,7 +10,8 @@ from airport import Airport
 
 
 class ConnectionPool:
-    def __init__(self, min_numbers_of_connections, max_number_of_connections):
+    def __init__(self, server, min_numbers_of_connections, max_number_of_connections):
+        self.server = server
         self.connections_list = []
         self.connections_in_use_list = []
         self.lock = Lock()
@@ -86,16 +87,19 @@ class ConnectionPool:
 class ClientHandler(threading.Thread):
     def __init__(self, client_socket, address):
         super().__init__()
-        self.server = Server()
         self.client_socket = client_socket
         self.address = address
         self.BUFFER = BUFFER
         self.data_utils = DataUtils()
         self.communication_utils = ServerProtocols()
 
+    def send_message_to_client(self, dict_data):
+        message = self.data_utils.serialize_to_json(dict_data)
+        self.client_socket.sendall(message)
+
     def run(self):
         welcome_message = self.communication_utils.welcome_protocol()
-        self.server.send_message_to_client(self.client_socket, welcome_message)
+        self.send_message_to_client(welcome_message)
         initial_coordinates_json = self.client_socket.recv(self.BUFFER)
         initial_coordinates = self.data_utils.deserialize_json(initial_coordinates_json)
         airplane = self.airport.create_airplane_object_and_append_it_to_list(initial_coordinates["body"])
@@ -112,14 +116,8 @@ class Server:
         self.is_running = True
         self.start_date = datetime.datetime.now()
         self.version = "0.2.1"
-        self.communication_utils = ServerProtocols()
-        self.server_connection = self.data_utils.create_connection()
-        self.connection_pool = ConnectionPool(10, 100)
+        self.connection_pool = ConnectionPool(self, 10, 100)
         self.airport = Airport()
-
-    def send_message_to_client(self, client_socket, dict_data):
-        message = self.data_utils.serialize_to_json(dict_data)
-        client_socket.sendall(message)
 
     def close_client_socket_when_airplane_crashed_or_successfully_landed(self, airplane, client_socket):
         if airplane in self.airport.crashed_airplanes or airplane in self.airport.airplanes_with_successfully_landing:
@@ -146,7 +144,7 @@ class Server:
         current_time = datetime.datetime.now()
         time_difference = current_time - self.start_date
         if time_difference >= datetime.timedelta(seconds = 3600):
-            print("Server`s out...".upper())
+            print("SERVER`S OUT...")
             self.is_running = False
             server_socket.close()
 
