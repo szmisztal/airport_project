@@ -38,7 +38,6 @@ class DataUtils:
                 self.connection.rollback()
             finally:
                 self.cursor.close()
-                self.connection.close()
 
     def create_connections_table(self):
         query = """CREATE TABLE IF NOT EXISTS connections(
