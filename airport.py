@@ -38,6 +38,7 @@ class Airport:
             len(self.crashed_airplanes) +
             len(self.airplanes_with_successfully_landing)
         )
+        return self.number_of_all_planes
 
     def establish_all_points_and_sectors_to_move_for_airplane(self, airplane):
         if airplane.quarter == "NW":
