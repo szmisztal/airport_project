@@ -90,6 +90,7 @@ class ClientHandler(threading.Thread):
         self.client_socket = client_socket
         self.address = address
         self.BUFFER = BUFFER
+        self.in_use = False
         self.data_utils = DataUtils()
         self.communication_utils = ServerProtocols()
 
