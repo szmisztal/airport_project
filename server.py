@@ -64,7 +64,6 @@ class ConnectionPool:
         try:
             for connection in self.connections_list:
                 if len(self.connections_list) > 11:
-                    connection.close()
                     self.connections_list.remove(connection)
                     if len(self.connections_list) == 10:
                         break
@@ -80,8 +79,8 @@ class ConnectionPool:
                     break
 
     def connections_manager(self):
-        schedule.every(1).minute.do(self.destroy_unused_connections)
         schedule.every(1).minute.do(self.keep_connections_at_the_starting_level)
+        schedule.every(1).minute.do(self.destroy_unused_connections)
 
 
 class ClientHandler(threading.Thread):
@@ -103,7 +102,7 @@ class ClientHandler(threading.Thread):
         self.send_message_to_client(welcome_message)
         initial_coordinates_json = self.client_socket.recv(self.BUFFER)
         initial_coordinates = self.data_utils.deserialize_json(initial_coordinates_json)
-        airplane = self.airport.create_airplane_object_and_append_it_to_list(initial_coordinates["body"])
+        print(initial_coordinates)
 
 class Server:
     def __init__(self):
@@ -131,7 +130,7 @@ class Server:
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
-            print("Server`s up".upper())
+            print("SERVER`S UP...")
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
             while self.is_running:
@@ -148,7 +147,6 @@ class Server:
             print("SERVER`S OUT...")
             self.is_running = False
             server_socket.close()
-
 
 
 if __name__ == "__main__":
