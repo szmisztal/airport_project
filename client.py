@@ -39,7 +39,7 @@ class Client:
                     self.stop(client_socket)
                     
     def stop(self, client_socket):
-        print("Client`s out...".upper())
+        print("CLIENT`S OUT...")
         self.is_running = False
         client_socket.close()
 
