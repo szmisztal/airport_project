@@ -24,7 +24,7 @@ class Client:
 
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
-            print("Client`s up".upper())
+            print("CLIENT`S UP...")
             client_socket.connect((HOST, PORT))
             server_response = client_socket.recv(self.BUFFER)
             self.read_server_response(server_response)
