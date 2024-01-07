@@ -22,8 +22,6 @@ class DataUtils:
             except Error as e:
                 print(f"Error: {e}")
                 connection.connection.rollback()
-            finally:
-                connection.cursor.close()
 
     def create_connections_table(self, connection):
         query = """CREATE TABLE IF NOT EXISTS connections(
