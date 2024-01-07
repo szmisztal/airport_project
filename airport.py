@@ -16,7 +16,6 @@ class Airport:
         self.waiting_sector_for_landing_SE = CustomSector(3000, 3500, -700, -900, 2200, 2500)
         self.air_corridor_N = CustomSector(-2000, 2000, 400, 500, 0, 2000)
         self.air_corridor_S = CustomSector(-2000, 2000, -500, -400, 0, 2000)
-        self.air_corridors_list = [self.air_corridor_N, self.air_corridor_S]
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
         self.airplanes_in_the_air_list = []
