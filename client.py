@@ -16,6 +16,7 @@ class Client:
         self.data_utils = DataUtils()
         self.is_running = True
         self.communication_utils = ClientProtocols()
+        self.airplane = Airplane(Airplane.establish_init_airplane_coordinates())
 
     def read_server_response(self, dict_data):
         deserialized_data = self.data_utils.deserialize_json(dict_data)
@@ -42,8 +43,6 @@ class Client:
         print("CLIENT`S OUT...")
         self.is_running = False
         client_socket.close()
-
-
 
 
 if __name__ == "__main__":
