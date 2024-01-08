@@ -1,15 +1,16 @@
 class CommunicationUtils:
-    def protocol_template(self, message = None, body = None):
+    def protocol_template(self, message = None, body = None, id = None):
         template = {
             "message": message,
-            "body": body
+            "body": body,
+            "id": id
         }
         return template
 
 
 class ServerProtocols(CommunicationUtils):
-    def welcome_protocol(self):
-        return self.protocol_template(message = "Welcome !", body = "Submit your coordinates")
+    def welcome_protocol(self, id):
+        return self.protocol_template(message = "Welcome to our airport !", body = "Submit your coordinates", id = id)
 
     def airplane_crashed(self):
         return self.protocol_template(message = "Crash !", body = "Airplane crashed..")
