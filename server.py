@@ -6,6 +6,7 @@ from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
 from data_utils import DataUtils
 from communication_utils import ServerProtocols
 from airport import Airport
+from connection_pool import ConnectionPool
 
 
 class ClientHandler(threading.Thread):
@@ -21,7 +22,7 @@ class ClientHandler(threading.Thread):
         message = self.data_utils.serialize_to_json(dict_data)
         self.client_socket.sendall(message)
 
-    def welcome_message(self):
+    def welcome_message(self, id):
         welcome_message = self.communication_utils.welcome_protocol()
         self.send_message_to_client(welcome_message)
 
@@ -41,8 +42,10 @@ class Server:
         self.lock = Lock()
         self.is_running = True
         self.start_date = datetime.datetime.now()
-        self.version = "0.3.2"
+        self.version = "0.4.2"
         self.airport = Airport()
+        self.connection_pool = ConnectionPool(10, 100)
+        self.server_connection = self.connection_pool.get_connection()
 
     # def close_client_socket_when_airplane_crashed_or_successfully_landed(self, airplane, client_socket):
     #     if airplane in self.airport.crashed_airplanes or airplane in self.airport.airplanes_with_successfully_landing:
@@ -56,6 +59,7 @@ class Server:
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             print("SERVER`S UP...")
+            self.data_utils.create_connections_table(self.server_connection)
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
             try:
@@ -63,15 +67,14 @@ class Server:
                     server_lifetime = self.check_server_lifetime()
                     if not server_lifetime:
                         self.stop(server_socket)
-                    self.airport.airport_manager()
+                    # self.airport.airport_manager()
                     client_socket, address = server_socket.accept()
                     try:
                         self.lock.acquire()
                         client_handler = ClientHandler(client_socket, address)
                         client_handler.start()
-                        client_handler.welcome_message()
-                        init_coordinates = client_handler.response_from_client_with_init_coordinates()
-                        # self.airport.create_airplane_object_and_append_it_to_list(init_coordinates, 0)
+                        airplane_id = self.data_utils.get_all_airplanes_list(self.server_connection)
+                        client_handler.welcome_message(airplane_id)
                         self.lock.release()
                     except Exception as e:
                         print(f"Error: {e}")
