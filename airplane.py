@@ -9,7 +9,6 @@ class Airplane:
         self.x = coordinates["x"]
         self.y = coordinates["y"]
         self.z = coordinates["z"]
-        self.coordinates = self.x, self.y, self.z
         self.quarter = self.establish_airplane_quarter()
         self.initial_landing_point = None
         self.waiting_sector = None
@@ -62,5 +61,4 @@ class Airplane:
         return True
 
     def __str__(self):
-        return f"Airplane_ID: '{self.id}'"
-
+        return {f'Airplane_{self.id}': [self.x, self.y, self.z]}
