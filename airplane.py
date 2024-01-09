@@ -61,4 +61,4 @@ class Airplane:
         return True
 
     def __str__(self):
-        return {f'Airplane_{self.id}': [self.x, self.y, self.z]}
+        return f"{{'Airplane_{self.id}': [{self.x}, {self.y}, {self.z}]}}"
