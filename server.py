@@ -23,13 +23,13 @@ class ClientHandler(threading.Thread):
         self.client_socket.sendall(message)
 
     def welcome_message(self, id):
-        welcome_message = self.communication_utils.welcome_protocol()
+        welcome_message = self.communication_utils.welcome_protocol(id)
         self.send_message_to_client(welcome_message)
 
-    def response_from_client_with_init_coordinates(self):
-        initial_coordinates_json = self.client_socket.recv(self.BUFFER)
-        initial_coordinates = self.data_utils.deserialize_json(initial_coordinates_json)["body"]
-        return initial_coordinates
+    def response_from_client_with_coordinates(self):
+        coordinates_json = self.client_socket.recv(self.BUFFER)
+        coordinates = self.data_utils.deserialize_json(coordinates_json)["body"]
+        return coordinates
 
 
 class Server:
@@ -74,8 +74,9 @@ class Server:
                         client_handler = ClientHandler(client_socket, address)
                         client_handler.start()
                         airplane_id = self.data_utils.get_all_airplanes_list(self.server_connection)
-                        client_handler.welcome_message(airplane_id)
+                        client_handler.welcome_message(int(airplane_id) + 1)
                         self.lock.release()
+                        self.stop(server_socket)            #delete later
                     except Exception as e:
                         print(f"Error: {e}")
                         pass            #add exception service
