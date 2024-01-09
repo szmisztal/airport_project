@@ -1,9 +1,9 @@
 class CommunicationUtils:
-    def protocol_template(self, message = None, body = None, id = None):
+    def protocol_template(self, message = None, body = None, **kwargs):
         template = {
             "message": message,
             "body": body,
-            "id": id
+            **kwargs
         }
         return template
 
@@ -26,5 +26,5 @@ class ServerProtocols(CommunicationUtils):
 
 
 class ClientProtocols(CommunicationUtils):
-    def initial_coordinates(self, coordinates):
-        return self.protocol_template(message = "Coordinates", body = coordinates)
+    def send_coordinates(self, coordinates):
+        return self.protocol_template(message = "Our coordinates", body = coordinates)
