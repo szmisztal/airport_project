@@ -59,4 +59,36 @@ from airplane import Airplane
 #
 # plt.show()
 
+airplane_1 = {
+    "Airplane_1": {
+        "coordinates": [5000, 2000, 2500],
+        "quarter": "NW",
+        "initial_landing_point": "NW",
+        "waiting_sector": "NW",
+        "zero_point": "N"
+    }
+}
+
+airplane_2 = {
+    "Airplane_2": {
+        "coordinates": [-5000, -2000, 3000],
+        "quarter": "SE",
+        "initial_landing_point": "SE",
+        "waiting_sector": "SE",
+        "zero_point": "S"
+    }
+}
+
+airplanes = {}
+airplanes.update(airplane_1)
+airplanes.update(airplane_2)
+
+for _ in range(10):
+    for key, value in airplanes.items():
+        for sub_key, sub_value in value.items():
+            if sub_key == "coordinates":
+                sub_value = [coord + 500 for coord in sub_value]
+                print(sub_value)
+                airplanes[key][sub_key] = sub_value
+
 
