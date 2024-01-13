@@ -38,11 +38,6 @@ class Airplane:
         }
         return coordinates_dict
 
-    def establish_airplane_id(self, airplanes_in_db_number):
-        airplane_id = airplanes_in_db_number + 1
-        self.id = airplane_id
-        return self.id
-
     def establish_airplane_quarter(self):
         if self.x in range(-5000, 0) and self.y in range(0, 5001):
              return "NW"
@@ -61,4 +56,4 @@ class Airplane:
         return True
 
     def __str__(self):
-        return f"{{'Airplane_{self.id}': [{self.x}, {self.y}, {self.z}]}}"
+        return [self.x, self.y, self.z]
