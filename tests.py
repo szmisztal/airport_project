@@ -79,16 +79,30 @@ airplane_2 = {
     }
 }
 
-airplanes = {}
-airplanes.update(airplane_1)
-airplanes.update(airplane_2)
+# airplanes = {}
+# airplanes.update(airplane_1)
+# airplanes.update(airplane_2)
+#
+# for _ in range(10):
+#     for key, value in airplanes.items():
+#         for sub_key, sub_value in value.items():
+#             if sub_key == "coordinates":
+#                 sub_value = [coord + 500 for coord in sub_value]
+#                 print(sub_value)
+#                 airplanes[key][sub_key] = sub_value
 
-for _ in range(10):
-    for key, value in airplanes.items():
-        for sub_key, sub_value in value.items():
-            if sub_key == "coordinates":
-                sub_value = [coord + 500 for coord in sub_value]
-                print(sub_value)
-                airplanes[key][sub_key] = sub_value
 
+airplanes = []
+airplanes.append(airplane_1)
+airplanes.append(airplane_2)
+
+for item in airplanes:
+    for airplane, airplane_details in item.items():
+        for detail_key, detail_value in airplane_details.items():
+            if detail_key == "coordinates":
+                detail_value = [coord + 500 for coord in detail_value]
+                print(detail_value)
+                airplane_details["coordinates"] = detail_value
+
+print(airplanes)
 
