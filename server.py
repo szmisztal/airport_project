@@ -10,7 +10,7 @@ from connection_pool import ConnectionPool
 
 
 class ClientHandler(threading.Thread):
-    def __init__(self, client_socket, address, thread_id, connection):
+    def __init__(self, server, client_socket, address, thread_id, connection):
         super().__init__()
         self.client_socket = client_socket
         self.address = address
@@ -20,6 +20,11 @@ class ClientHandler(threading.Thread):
         self.data_utils = DataUtils()
         self.communication_utils = ServerProtocols()
         self.is_running = True
+        self.airport = server.airport
+        self.airplane_x = None
+        self.airplane_y = None
+        self.airplane_z = None
+        self.airplane_quarter = None
 
     def send_message_to_client(self, dict_data):
         message = self.data_utils.serialize_to_json(dict_data)
@@ -36,7 +41,11 @@ class ClientHandler(threading.Thread):
 
     def run(self):
         self.welcome_message(self.thread_id)
-
+        while self.is_running:
+            coordinates_json = self.client_socket.recv(BUFFER)
+            coordinates = self.data_utils.deserialize_json(coordinates_json)
+            self.airplane_x, self.airplane_y, self.airplane_z, self.airplane_quarter = \
+                coordinates["body"]["x"], coordinates["body"]["y"], coordinates["body"]["z"], coordinates["body"]["quarter"]
 
 
 class Server:
@@ -75,22 +84,32 @@ class Server:
                     server_lifetime = self.check_server_lifetime()
                     if not server_lifetime:
                         self.stop(server_socket)
-                    # self.airport.airport_manager()
-                    client_socket, address = server_socket.accept()
+                    else:
+                        if len(self.clients_list) > 0:
+                            self.airport.airport_manager(self.clients_list)
+                        else:
+                            print("Waiting for airplanes...")
+                    server_socket.settimeout(1)
                     try:
-                        self.lock.acquire()
-                        thread_id = self.data_utils.get_all_airplanes_list(self.server_connection)
-                        client_handler = ClientHandler(client_socket, address, thread_id + 1, self.connection_pool.get_connection())
-                        self.clients_list.append(client_handler)
-                        client_handler.start()
-                        client_handler.run()
-                        self.lock.release()
-                    except Exception as e:
-                        print(f"Error: {e}")
-                        pass            #add exception service
+                        client_socket, address = server_socket.accept()
+                        try:
+                            self.lock.acquire()
+                            thread_id = self.data_utils.get_all_airplanes_list(self.server_connection)
+                            client_handler = ClientHandler(self, client_socket, address, thread_id + 1,
+                                                           self.connection_pool.get_connection())
+                            self.clients_list.append(client_handler)
+                            client_handler.start()
+                            client_handler.run()
+                        except Exception as e:
+                            print(f"Error: {e}")
+                            pass  # add exception service
+                        finally:
+                            self.lock.release()
+                    except server_socket.timeout:
+                        continue
             except Exception as e:
                 print(f"Error: {e}")
-                pass            #add exception service
+                pass  # add exception service
             finally:
                 server_socket.close()
 
