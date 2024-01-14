@@ -9,10 +9,10 @@ def euclidean_formula(object_1, object_2):
     ))
     return round(distance)
 
-def movement_formula(airplane, target, time_interval = 1):
-    delta_x = target.x - airplane.x
-    delta_y = target.y - airplane.y
-    delta_z = target.z - airplane.z
+def movement_formula(airplane, target_x, target_y, target_z, time_interval = 1):
+    delta_x = target_x - airplane.x
+    delta_y = target_y - airplane.y
+    delta_z = target_z - airplane.z
     angle_xy = math.atan2(delta_y, delta_x)
     angle_xz = math.atan2(delta_z, math.sqrt(pow(delta_x, 2) + pow(delta_y, 2)))
     v_x = airplane.speed * math.cos(angle_xy) * math.cos(angle_xz)
@@ -21,5 +21,3 @@ def movement_formula(airplane, target, time_interval = 1):
     airplane.x += round(v_x * time_interval)
     airplane.y += round(v_y * time_interval)
     airplane.z += round(v_z * time_interval)
-
-
