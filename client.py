@@ -18,12 +18,12 @@ class Client:
         self.communication_utils = ClientProtocols()
         self.airplane = Airplane(Airplane.establish_init_airplane_coordinates())
 
-    def read_server_response(self, data):
+    def read_message_from_server(self, data):
         deserialized_data = self.data_utils.deserialize_json(data)
         print(f">>> {deserialized_data['message']} {deserialized_data['body']}.")
         return deserialized_data
 
-    def send_request_to_server(self, client_socket, data):
+    def send_message_to_server(self, client_socket, data):
         client_request = self.data_utils.serialize_to_json(data)
         client_socket.sendall(client_request)
 
@@ -32,14 +32,17 @@ class Client:
             print("CLIENT`S UP...")
             client_socket.connect((HOST, PORT))
             server_response_json = client_socket.recv(self.BUFFER)
-            server_response = self.read_server_response(server_response_json)
+            server_response = self.read_message_from_server(server_response_json)
             self.airplane.id = server_response["id"]
-            coordinates = self.communication_utils.send_coordinates(str(self.airplane))
-            self.send_request_to_server(client_socket, coordinates)
             while self.is_running:
-                server_response_json = client_socket.recv(self.BUFFER)
-                server_response = self.read_server_response(server_response_json)
-                    
+                coordinates = self.communication_utils.send_coordinates(
+                    {"x": self.airplane.x,
+                     "y": self.airplane.y,
+                     "z": self.airplane.z,
+                     "quarter": self.airplane.quarter}
+                )
+                self.send_message_to_server(client_socket, coordinates)
+
     def stop(self, client_socket):
         print("CLIENT`S OUT...")
         self.is_running = False
