@@ -1,5 +1,9 @@
 import matplotlib.pyplot as plt
 from airplane import Airplane
+from math_patterns import movement_formula
+from airport import Airport
+import time
+
 
 # airport_coords = (0, 0, 0)
 #
@@ -58,51 +62,14 @@ from airplane import Airplane
 #     plt.draw()
 #
 # plt.show()
-
-airplane_1 = {
-    "Airplane_1": {
-        "coordinates": [5000, 2000, 2500],
-        "quarter": "NW",
-        "initial_landing_point": "NW",
-        "waiting_sector": "NW",
-        "zero_point": "N"
-    }
-}
-
-airplane_2 = {
-    "Airplane_2": {
-        "coordinates": [-5000, -2000, 3000],
-        "quarter": "SE",
-        "initial_landing_point": "SE",
-        "waiting_sector": "SE",
-        "zero_point": "S"
-    }
-}
-
-# airplanes = {}
-# airplanes.update(airplane_1)
-# airplanes.update(airplane_2)
-#
-# for _ in range(10):
-#     for key, value in airplanes.items():
-#         for sub_key, sub_value in value.items():
-#             if sub_key == "coordinates":
-#                 sub_value = [coord + 500 for coord in sub_value]
-#                 print(sub_value)
-#                 airplanes[key][sub_key] = sub_value
+coords_1 = Airplane.establish_init_airplane_coordinates()
+airplane_1 = Airplane(coords_1)
+airport = Airport()
 
 
-airplanes = []
-airplanes.append(airplane_1)
-airplanes.append(airplane_2)
+for i in range(20):
+    dif = airplane_1.fuel_consumption()
+    print(dif, type(dif))
+    time.sleep(1)
 
-for item in airplanes:
-    for airplane, airplane_details in item.items():
-        for detail_key, detail_value in airplane_details.items():
-            if detail_key == "coordinates":
-                detail_value = [coord + 500 for coord in detail_value]
-                print(detail_value)
-                airplane_details["coordinates"] = detail_value
-
-print(airplanes)
 
