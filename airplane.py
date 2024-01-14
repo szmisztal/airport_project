@@ -9,7 +9,7 @@ class Airplane:
         self.x = coordinates["x"]
         self.y = coordinates["y"]
         self.z = coordinates["z"]
-        self.quarter = None
+        self.quarter = self.establish_airplane_quarter()
         self.initial_landing_point = None
         self.waiting_sector = None
         self.zero_point = None
@@ -55,5 +55,4 @@ class Airplane:
             return False
         return True
 
-    def __str__(self):
-        return [self.x, self.y, self.z]
+
