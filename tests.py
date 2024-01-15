@@ -62,14 +62,16 @@ import time
 #     plt.draw()
 #
 # plt.show()
-coords_1 = Airplane.establish_init_airplane_coordinates()
-airplane_1 = Airplane(coords_1)
-airport = Airport()
+a = Airplane(Airplane.establish_init_airplane_coordinates())
+print(a.quarter, a.zero_point, a.waiting_point, a.initial_landing_point)
+b = a.parse_airplane_obj_to_json()
+print(b)
+update_data = {'quarter': 'NW','initial_landing_point': 'NW', 'waiting_point': 'NW', 'zero_point': 'N'}
+b["Airplane_None"].update(update_data)
+print(b)
+a.quarter = update_data.get("quarter")
+a.initial_landing_point = update_data.get("initial_landing_point")
+a.waiting_point = update_data.get("waiting_point")
+a.zero_point = update_data.get("zero_point")
 
-
-for i in range(20):
-    dif = airplane_1.fuel_consumption()
-    print(dif, type(dif))
-    time.sleep(1)
-
-
+print(a.quarter, a.zero_point, a.waiting_point, a.initial_landing_point)
