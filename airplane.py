@@ -9,9 +9,9 @@ class Airplane:
         self.x = coordinates["x"]
         self.y = coordinates["y"]
         self.z = coordinates["z"]
-        self.quarter = self.establish_airplane_quarter()
+        self.quarter = None
         self.initial_landing_point = None
-        self.waiting_sector = None
+        self.waiting_point = None
         self.zero_point = None
         self.speed = 100
         self.move_to_initial_landing_point = True
@@ -38,21 +38,31 @@ class Airplane:
         }
         return coordinates_dict
 
-    def establish_airplane_quarter(self):
-        if self.x in range(-5000, 0) and self.y in range(0, 5001):
-             return "NW"
-        elif self.x in range(0, 5001) and self.y in range(0, 5001):
-            return "NE"
-        elif self.x in range(-5000, 0) and self.y in range(-5000, 0):
-            return "SW"
-        elif self.x in range(0, 5001) and self.y in range(-5000, 0):
-            return "SE"
+    def set_points(self, points):
+        self.quarter = points.get("quarter")
+        self.initial_landing_point = points.get("initial_landing_point")
+        self.waiting_point = points.get("waiting_point")
+        self.zero_point = points.get("zero_point")
 
     def fuel_consumption(self):
         current_time = datetime.datetime.now()
         time_difference = current_time - self.date_of_appearance
-        if time_difference >= datetime.timedelta(seconds = 10800):
-            return False
-        return True
+        if time_difference >= datetime.timedelta(seconds=10800):
+            return time_difference
+        return None
+
+    def parse_airplane_obj_to_json(self):
+        return {
+            f"Airplane_{self.id}": {
+                "coordinates": [self.x, self.y, self.z],
+                "quarter": self.quarter,
+                "initial_landing_point": self.initial_landing_point,
+                "waiting_point": self.waiting_point,
+                "zero_point": self.zero_point,
+                "move_to_initial_landing_point": self.move_to_initial_landing_point,
+                "move_to_waiting_sector": self.move_to_waiting_sector,
+                "move_to_runaway": self.move_to_runaway
+            }
+        }
 
 
