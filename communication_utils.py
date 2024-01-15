@@ -12,19 +12,12 @@ class ServerProtocols(CommunicationUtils):
     def welcome_protocol(self, id):
         return self.protocol_template(message = "Welcome to our airport !", body = "Submit your coordinates", id = id)
 
-    def airplane_crashed(self):
-        return self.protocol_template(message = "Crash !", body = "Airplane crashed..")
-
-    def successfully_landing(self):
-        return self.protocol_template(message = "Success !", body = "You`re successfully landed")
-
-    def server_shut_down(self):
-        return self.protocol_template(message = "Server status:", body = "Shutting down..")
-
-    def connections_limit(self):
-        return self.protocol_template(message = "Airport`s full:", body = "You have to fly away..")
-
+    def points_for_airplane_protocol(self, points):
+        return self.protocol_template(message = "Your points: ", body = points)
 
 class ClientProtocols(CommunicationUtils):
-    def send_coordinates(self, coordinates):
-        return self.protocol_template(message = "Our coordinates", body = coordinates)
+    def send_coordinates_protocol(self, coordinates):
+        return self.protocol_template(message = "Our coordinates: ", body = coordinates)
+
+    def send_airplane_object_protocol(self, object):
+        return self.protocol_template(message = "Our data: ", body = object)
