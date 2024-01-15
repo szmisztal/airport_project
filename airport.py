@@ -19,22 +19,33 @@ class Airport:
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
 
+    @staticmethod
+    def establish_airplane_quarter(coordinates):
+        if coordinates[0] in range(-5000, 0) and coordinates[1] in range(0, 5001):
+             return "NW"
+        elif coordinates[0] in range(0, 5001) and coordinates[1] in range(0, 5001):
+            return "NE"
+        elif coordinates[0] in range(-5000, 0) and coordinates[1] in range(-5000, 0):
+            return "SW"
+        elif coordinates[0] in range(0, 5001) and coordinates[1] in range(-5000, 0):
+            return "SE"
+
     def establish_all_points_and_sectors_to_move_for_airplane(self, airplane):
         if airplane.quarter == "NW":
             airplane.initial_landing_point = self.initial_landing_point_NW
-            airplane.waiting_sector = self.waiting_sector_for_landing_NW
+            airplane.waiting_point = self.waiting_sector_for_landing_NW
             airplane.zero_point = self.zero_point_N
         elif airplane.quarter == "NE":
             airplane.initial_landing_point = self.initial_landing_point_NE
-            airplane.waiting_sector = self.waiting_sector_for_landing_NE
+            airplane.waiting_point = self.waiting_sector_for_landing_NE
             airplane.zero_point = self.zero_point_N
         elif airplane.quarter == "SW":
             airplane.initial_landing_point = self.initial_landing_point_SW
-            airplane.waiting_sector = self.waiting_sector_for_landing_SW
+            airplane.waiting_point = self.waiting_sector_for_landing_SW
             airplane.zero_point = self.zero_point_S
         elif airplane.quarter == "SE":
             airplane.initial_landing_point = self.initial_landing_point_SE
-            airplane.waiting_sector = self.waiting_sector_for_landing_SE
+            airplane.waiting_point = self.waiting_sector_for_landing_SE
             airplane.zero_point = self.zero_point_S
 
     def simulate_airplanes_movement(self, airplane):
@@ -63,7 +74,7 @@ class Airport:
                     self.air_corridor_S.occupied = True
                 self.direct_airplane_to_runaway(airplane, distance)
         elif airplane.move_to_waiting_sector:
-            distance = euclidean_formula(airplane, airplane.waiting_sector)
+            distance = euclidean_formula(airplane, airplane.waiting_point)
             if distance <= 100:
                 if airplane.quarter in ["NW", "NE"]:
                     air_corridor = self.air_corridor_N
@@ -83,7 +94,7 @@ class Airport:
 
     def direct_airplane_to_waiting_sector(self, airplane, distance, air_corridor):
         if distance > 100:
-            movement_formula(airplane, airplane.waiting_sector)
+            movement_formula(airplane, airplane.waiting_point)
         if 0 <= distance <= 100 and air_corridor.occupied == False:
             airplane.move_to_waiting_sector = False
             airplane.move_to_initial_landing_point = True
