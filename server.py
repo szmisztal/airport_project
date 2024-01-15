@@ -21,14 +21,15 @@ class ClientHandler(threading.Thread):
         self.communication_utils = ServerProtocols()
         self.is_running = True
         self.airport = server.airport
-        self.airplane_x = None
-        self.airplane_y = None
-        self.airplane_z = None
-        self.airplane_quarter = None
+        self.airplane_object = None
 
-    def send_message_to_client(self, dict_data):
-        message = self.data_utils.serialize_to_json(dict_data)
+    def send_message_to_client(self, data):
+        message = self.data_utils.serialize_to_json(data)
         self.client_socket.sendall(message)
+
+    def read_message_from_client(self, data):
+        deserialized_data = self.data_utils.deserialize_json(data)
+        return deserialized_data
 
     def welcome_message(self, id):
         welcome_message = self.communication_utils.welcome_protocol(id)
@@ -39,13 +40,24 @@ class ClientHandler(threading.Thread):
         coordinates = self.data_utils.deserialize_json(coordinates_json)["body"]
         return coordinates
 
-    def run(self):
+    def establish_all_service_points_for_airplane(self, coordinates):
+        quarter = self.airport.establish_airplane_quarter(coordinates)
+        points_for_airplane = {
+            "quarter": quarter,
+            "initial_landing_point": quarter,
+            "waiting_point": quarter,
+            "zero_point": quarter[0]
+        }
+        points_to_send = self.communication_utils.points_for_airplane_protocol(points_for_airplane)
+        self.send_message_to_client(points_to_send)
+
+    def initial_correspondence_with_client(self):
         self.welcome_message(self.thread_id)
-        while self.is_running:
-            coordinates_json = self.client_socket.recv(BUFFER)
-            coordinates = self.data_utils.deserialize_json(coordinates_json)
-            self.airplane_x, self.airplane_y, self.airplane_z, self.airplane_quarter = \
-                coordinates["body"]["x"], coordinates["body"]["y"], coordinates["body"]["z"], coordinates["body"]["quarter"]
+        coordinates = self.response_from_client_with_coordinates()
+        self.establish_all_service_points_for_airplane(coordinates)
+        airplane_object_json = self.client_socket.recv(self.BUFFER)
+        airplane_object = self.read_message_from_client(airplane_object_json)
+        self.airplane_object = airplane_object
 
 
 class Server:
@@ -84,14 +96,9 @@ class Server:
                     server_lifetime = self.check_server_lifetime()
                     if not server_lifetime:
                         self.stop(server_socket)
-                    else:
-                        if len(self.clients_list) > 0:
-                            self.airport.airport_manager(self.clients_list)
-                        else:
-                            print("Waiting for airplanes...")
-                    server_socket.settimeout(1)
                     try:
                         client_socket, address = server_socket.accept()
+                        client_socket.settimeout(1)
                         try:
                             self.lock.acquire()
                             thread_id = self.data_utils.get_all_airplanes_list(self.server_connection)
@@ -99,13 +106,12 @@ class Server:
                                                            self.connection_pool.get_connection())
                             self.clients_list.append(client_handler)
                             client_handler.start()
-                            client_handler.run()
                         except Exception as e:
                             print(f"Error: {e}")
                             pass  # add exception service
                         finally:
                             self.lock.release()
-                    except server_socket.timeout:
+                    except client_socket.timeout:
                         continue
             except Exception as e:
                 print(f"Error: {e}")

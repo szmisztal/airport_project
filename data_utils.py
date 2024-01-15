@@ -6,10 +6,22 @@ from variables import encode_format
 class DataUtils:
 
     def serialize_to_json(self, dict_data):
-        return json.dumps(dict_data).encode(encode_format)
+        return json.dumps(dict_data, default = self.convert_to_json).encode(encode_format)
 
     def deserialize_json(self, dict_data):
+        print(repr(dict_data))
         return json.loads(dict_data)
+
+    @staticmethod
+    def convert_to_json(obj):
+        if obj is None:
+            return 'null'
+        elif obj is True:
+            return 'true'
+        elif obj is False:
+            return 'false'
+        else:
+            raise TypeError(f"Unsupported type: {type(obj)}")
 
     def execute_sql_query(self, connection, query, *args, fetch_option = None):
             try:
