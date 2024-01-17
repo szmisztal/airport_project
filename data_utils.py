@@ -9,7 +9,6 @@ class DataUtils:
         return json.dumps(dict_data, default = self.convert_to_json).encode(encode_format)
 
     def deserialize_json(self, dict_data):
-        print(repr(dict_data))
         return json.loads(dict_data)
 
     @staticmethod
