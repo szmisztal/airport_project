@@ -157,7 +157,7 @@ class CustomPoint:
         self.x = x
         self.y = y
         self.z = z
-        
+
     def point_coordinates(self):
         return [self.x, self.y, self.z]
 
