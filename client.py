@@ -27,25 +27,28 @@ class Client:
         client_request = self.data_utils.serialize_to_json(data)
         client_socket.sendall(client_request)
 
+    def initial_correspondence_with_server(self, client_socket):
+        server_response_json = client_socket.recv(self.BUFFER)
+        server_response = self.read_message_from_server(server_response_json)
+        self.airplane.id = server_response["id"]
+        coordinates = self.communication_utils.coordinates_protocol(
+            {"x": self.airplane.x,
+             "y": self.airplane.y,
+             "z": self.airplane.z}
+        )
+        self.send_message_to_server(client_socket, coordinates)
+        points_for_airplane_json = client_socket.recv(self.BUFFER)
+        points = self.read_message_from_server(points_for_airplane_json)["body"]
+        self.airplane.set_points(points)
+        airplane_obj = self.communication_utils.airplane_object_protocol(self.airplane.parse_airplane_obj_to_json())
+        self.send_message_to_server(client_socket, airplane_obj)
+
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
             print("CLIENT`S UP...")
             client_socket.connect((HOST, PORT))
-            server_response_json = client_socket.recv(self.BUFFER)
-            server_response = self.read_message_from_server(server_response_json)
-            self.airplane.id = server_response["id"]
-            coordinates = self.communication_utils.send_coordinates_protocol(
-                {"x": self.airplane.x,
-                 "y": self.airplane.y,
-                 "z": self.airplane.z}
-            )
-            self.send_message_to_server(client_socket, coordinates)
-            points_for_airplane_json = client_socket.recv(self.BUFFER)
-            points = self.read_message_from_server(points_for_airplane_json)
-            self.airplane.set_points(points)
-            airplane_obj = self.communication_utils.send_airplane_object_protocol(self.airplane.parse_airplane_obj_to_json())
-            self.send_message_to_server(client_socket, airplane_obj)
-
+            self.initial_correspondence_with_server(client_socket)
+            print(self.airplane.parse_airplane_obj_to_json())
 
     def stop(self, client_socket):
         print("CLIENT`S OUT...")
