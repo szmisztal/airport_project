@@ -51,13 +51,17 @@ class ClientHandler(threading.Thread):
         points_to_send = self.communication_utils.points_for_airplane_protocol(points_for_airplane)
         self.send_message_to_client(points_to_send)
 
+    def direct_airplane_to_point(self, point):
+        direct_point = self.communication_utils.direct_airplane_protocol(point)
+        return self.send_message_to_client(direct_point)
+
     def initial_correspondence_with_client(self):
         self.welcome_message(self.thread_id)
         coordinates = self.response_from_client_with_coordinates()
         self.establish_all_service_points_for_airplane(coordinates)
         airplane_object_json = self.client_socket.recv(self.BUFFER)
         airplane_object = self.read_message_from_client(airplane_object_json)
-        self.airplane_object = airplane_object
+        self.airplane_object = airplane_object["body"]
 
 
 class Server:
@@ -106,6 +110,7 @@ class Server:
                                                            self.connection_pool.get_connection())
                             self.clients_list.append(client_handler)
                             client_handler.start()
+                            client_handler.initial_correspondence_with_client()
                         except Exception as e:
                             print(f"Error: {e}")
                             pass  # add exception service
