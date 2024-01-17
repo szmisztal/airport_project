@@ -21,13 +21,13 @@ class Airport:
 
     @staticmethod
     def establish_airplane_quarter(coordinates):
-        if coordinates[0] in range(-5000, 0) and coordinates[1] in range(0, 5001):
+        if coordinates["x"] in range(-5000, 0) and coordinates["y"] in range(0, 5001):
              return "NW"
-        elif coordinates[0] in range(0, 5001) and coordinates[1] in range(0, 5001):
+        elif coordinates["x"] in range(0, 5001) and coordinates["y"] in range(0, 5001):
             return "NE"
-        elif coordinates[0] in range(-5000, 0) and coordinates[1] in range(-5000, 0):
+        elif coordinates["x"] in range(-5000, 0) and coordinates["y"] in range(-5000, 0):
             return "SW"
-        elif coordinates[0] in range(0, 5001) and coordinates[1] in range(-5000, 0):
+        elif coordinates["x"] in range(0, 5001) and coordinates["y"] in range(-5000, 0):
             return "SE"
 
     def establish_all_points_and_sectors_to_move_for_airplane(self, airplane):
@@ -157,4 +157,7 @@ class CustomPoint:
         self.x = x
         self.y = y
         self.z = z
+        
+    def point_coordinates(self):
+        return [self.x, self.y, self.z]
 
