@@ -1,11 +1,11 @@
 import math
 
 
-def euclidean_formula(object_1, object_2):
+def euclidean_formula(airplane_x, airplane_y, airplane_z, target_x, target_y, target_z):
     distance = math.sqrt((
-        pow(object_1.x - object_2.x, 2) +
-        pow(object_1.y - object_2.y, 2) +
-        pow(object_1.z - object_2.z, 2)
+        pow(airplane_x - target_x, 2) +
+        pow(airplane_y - target_y, 2) +
+        pow(airplane_z - target_z, 2)
     ))
     return round(distance)
 
