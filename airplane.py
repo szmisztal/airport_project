@@ -60,7 +60,7 @@ class Airplane:
                 "waiting_point": self.waiting_point,
                 "zero_point": self.zero_point,
                 "move_to_initial_landing_point": self.move_to_initial_landing_point,
-                "move_to_waiting_sector": self.move_to_waiting_sector,
+                "move_to_waiting_point": self.move_to_waiting_sector,
                 "move_to_runaway": self.move_to_runaway
             }
         }
