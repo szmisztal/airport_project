@@ -1,6 +1,5 @@
 import itertools
 from math_patterns import euclidean_formula, movement_formula
-from airplane import Airplane
 
 
 class Airport:
@@ -10,12 +9,12 @@ class Airport:
         self.initial_landing_point_NE = CustomPoint(2500, 450, 2000)
         self.initial_landing_point_SW = CustomPoint(-2500, -450, 2000)
         self.initial_landing_point_SE = CustomPoint(2500, -450, 2000)
-        self.waiting_sector_for_landing_NW = CustomSector(-3500, -3000, 700, 900, 2200, 2500)
-        self.waiting_sector_for_landing_NE = CustomSector(3000, 3500, 700, 900, 2200, 2500)
-        self.waiting_sector_for_landing_SW = CustomSector(-3500, -3000, -700, -900, 2200, 2500)
-        self.waiting_sector_for_landing_SE = CustomSector(3000, 3500, -700, -900, 2200, 2500)
-        self.air_corridor_N = CustomSector(-2000, 2000, 400, 500, 0, 2000)
-        self.air_corridor_S = CustomSector(-2000, 2000, -500, -400, 0, 2000)
+        self.waiting_point_for_landing_NW = CustomPoint(-3250, 800, 2350)
+        self.waiting_point_for_landing_NE = CustomPoint(3250, 800, 2350)
+        self.waiting_point_for_landing_SW = CustomPoint(-3250, -800, 2350)
+        self.waiting_point_for_landing_SE = CustomPoint(3250, -800, 2350)
+        self.air_corridor_N = AirCorridor("N")
+        self.air_corridor_S = AirCorridor("S")
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
 
@@ -29,24 +28,6 @@ class Airport:
             return "SW"
         elif coordinates["x"] in range(0, 5001) and coordinates["y"] in range(-5000, 0):
             return "SE"
-
-    def establish_all_points_and_sectors_to_move_for_airplane(self, airplane):
-        if airplane.quarter == "NW":
-            airplane.initial_landing_point = self.initial_landing_point_NW
-            airplane.waiting_point = self.waiting_sector_for_landing_NW
-            airplane.zero_point = self.zero_point_N
-        elif airplane.quarter == "NE":
-            airplane.initial_landing_point = self.initial_landing_point_NE
-            airplane.waiting_point = self.waiting_sector_for_landing_NE
-            airplane.zero_point = self.zero_point_N
-        elif airplane.quarter == "SW":
-            airplane.initial_landing_point = self.initial_landing_point_SW
-            airplane.waiting_point = self.waiting_sector_for_landing_SW
-            airplane.zero_point = self.zero_point_S
-        elif airplane.quarter == "SE":
-            airplane.initial_landing_point = self.initial_landing_point_SE
-            airplane.waiting_point = self.waiting_sector_for_landing_SE
-            airplane.zero_point = self.zero_point_S
 
     def simulate_airplanes_movement(self, airplane):
         # self.check_airplanes_fuel_reserves(airplane)
@@ -141,15 +122,20 @@ class Airport:
             self.simulate_airplanes_movement(airplane)
 
 
-class CustomSector:
-    def __init__(self, x1 , x2, y1, y2, z1, z2):
+class AirCorridor:
+    def __init__(self, direction):
+        self.direction = direction
         self.occupied = False
-        self.length = (x1, x2)
-        self.width = (y1, y2)
-        self.height = (z1, z2)
-        self.x = (x1 + x2) / 2
-        self.y = (y1 + y2) / 2
-        self.z = (z1 + z2) / 2
+
+
+class CustomSector:
+    def __init__(self, x1, x2, y1, y2, z1, z2):
+        self.x1 = x1
+        self.x2 = x2
+        self.y1 = y1
+        self.y2 = y2
+        self.z1 = z1
+        self.z2 = z2
 
 
 class CustomPoint:
