@@ -22,6 +22,7 @@ class ClientHandler(threading.Thread):
         self.is_running = True
         self.airport = server.airport
         self.airplane_object = None
+        self.airplane_key = f"Airplane_{self.thread_id}"
 
     def send_message_to_client(self, data):
         message = self.data_utils.serialize_to_json(data)
@@ -51,9 +52,26 @@ class ClientHandler(threading.Thread):
         points_to_send = self.communication_utils.points_for_airplane_protocol(points_for_airplane)
         self.send_message_to_client(points_to_send)
 
-    def direct_airplane_to_point(self, point):
-        direct_point = self.communication_utils.direct_airplane_protocol(point)
+    def direct_airplane_to_point(self, coordinates):
+        direct_point = self.communication_utils.direct_airplane_protocol(coordinates)
         return self.send_message_to_client(direct_point)
+
+    def return_point_coordinates(self, quarter):
+        move_to_initial_point = self.airplane_object[self.airplane_key]["move_to_initial_landing_point"]
+        move_to_waiting_point = self.airplane_object[self.airplane_key]["move_to_waiting_point"]
+        move_to_runaway = self.airplane_object[self.airplane_key]["move_to_runaway"]
+        initial_landing_point_name = f"initial_landing_point_{quarter}"
+        initial_landing_point = getattr(self.airport, initial_landing_point_name)
+        waiting_point_name = f"waiting_point_for_landing_{quarter}"
+        waiting_point = getattr(self.airport, waiting_point_name)
+        zero_point_name = f"zero_point_{quarter[0]}"
+        zero_point = getattr(self.airport, zero_point_name)
+        if move_to_initial_point:
+            return initial_landing_point.point_coordinates()
+        elif move_to_waiting_point:
+            return waiting_point.point_coordinates()
+        elif move_to_runaway:
+            return zero_point.point_coordinates()
 
     def initial_correspondence_with_client(self):
         self.welcome_message(self.thread_id)
@@ -62,6 +80,7 @@ class ClientHandler(threading.Thread):
         airplane_object_json = self.client_socket.recv(self.BUFFER)
         airplane_object = self.read_message_from_client(airplane_object_json)
         self.airplane_object = airplane_object["body"]
+        self.direct_airplane_to_point(self.return_point_coordinates(self.airplane_object[self.airplane_key]["quarter"]))
 
 
 class Server:
@@ -76,6 +95,7 @@ class Server:
         self.start_date = datetime.datetime.now()
         self.version = "0.5.2"
         self.airport = Airport()
+        self.communication_utils = ServerProtocols()
         self.connection_pool = ConnectionPool(10, 100)
         self.server_connection = self.connection_pool.get_connection()
         self.clients_list = []
@@ -105,19 +125,25 @@ class Server:
                         client_socket.settimeout(1)
                         try:
                             self.lock.acquire()
-                            thread_id = self.data_utils.get_all_airplanes_list(self.server_connection)
-                            client_handler = ClientHandler(self, client_socket, address, thread_id + 1,
-                                                           self.connection_pool.get_connection())
-                            self.clients_list.append(client_handler)
-                            client_handler.start()
-                            client_handler.initial_correspondence_with_client()
+                            if len(self.clients_list) < 100:
+                                thread_id = self.data_utils.get_all_airplanes_list(self.server_connection)
+                                client_handler = ClientHandler(self, client_socket, address, thread_id + 1,
+                                                               self.connection_pool.get_connection())
+                                self.clients_list.append(client_handler)
+                                client_handler.start()
+                                client_handler.initial_correspondence_with_client()
+                            else:
+                                airport_full_message = self.communication_utils.airport_full_protocol()
+                                airport_full_message_json = self.data_utils.serialize_to_json(airport_full_message)
+                                client_socket.sendall(airport_full_message_json)
+                                client_socket.close()
                         except Exception as e:
                             print(f"Error: {e}")
                             pass  # add exception service
                         finally:
                             self.lock.release()
                     except client_socket.timeout:
-                        continue
+                            continue
             except Exception as e:
                 print(f"Error: {e}")
                 pass  # add exception service
