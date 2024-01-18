@@ -1,8 +1,10 @@
 import socket as s
+import time
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from data_utils import DataUtils
 from airplane import Airplane
 from communication_utils import ClientProtocols
+from math_patterns import euclidean_formula, movement_formula
 
 
 class Client:
@@ -30,25 +32,40 @@ class Client:
     def initial_correspondence_with_server(self, client_socket):
         server_response_json = client_socket.recv(self.BUFFER)
         server_response = self.read_message_from_server(server_response_json)
-        self.airplane.id = server_response["id"]
-        coordinates = self.communication_utils.coordinates_protocol(
-            {"x": self.airplane.x,
-             "y": self.airplane.y,
-             "z": self.airplane.z}
-        )
-        self.send_message_to_server(client_socket, coordinates)
-        points_for_airplane_json = client_socket.recv(self.BUFFER)
-        points = self.read_message_from_server(points_for_airplane_json)["body"]
-        self.airplane.set_points(points)
-        airplane_obj = self.communication_utils.airplane_object_protocol(self.airplane.parse_airplane_obj_to_json())
-        self.send_message_to_server(client_socket, airplane_obj)
+        if "Airport`s full: " in server_response["message"] and "You have to fly to another..." in server_response["body"]:
+            return None
+        else:
+            self.airplane.id = server_response["id"]
+            coordinates = self.communication_utils.coordinates_protocol(
+                {"x": self.airplane.x,
+                 "y": self.airplane.y,
+                 "z": self.airplane.z}
+            )
+            self.send_message_to_server(client_socket, coordinates)
+            points_for_airplane_json = client_socket.recv(self.BUFFER)
+            points = self.read_message_from_server(points_for_airplane_json)["body"]
+            self.airplane.set_points(points)
+            airplane_obj = self.communication_utils.airplane_object_protocol(self.airplane.parse_airplane_obj_to_json())
+            self.send_message_to_server(client_socket, airplane_obj)
+            server_response_json = client_socket.recv(self.BUFFER)
+            coordinates = self.read_message_from_server(server_response_json)
+            return coordinates
 
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
             print("CLIENT`S UP...")
             client_socket.connect((HOST, PORT))
-            self.initial_correspondence_with_server(client_socket)
-            print(self.airplane.parse_airplane_obj_to_json())
+            welcome_message_from_server = self.initial_correspondence_with_server(client_socket)
+            if welcome_message_from_server == None:
+                self.stop(client_socket)
+            else:
+                coordinates = welcome_message_from_server["body"]
+                while self.is_running:
+                    distance = euclidean_formula(self.airplane.x, self.airplane.y, self.airplane.z,
+                                                 coordinates[0], coordinates[1], coordinates[2])
+                    movement_formula(self.airplane, coordinates[0], coordinates[1], coordinates[2])
+                    time.sleep(1)
+                    self.send_message_to_server(client_socket, {"distance": distance})
 
     def stop(self, client_socket):
         print("CLIENT`S OUT...")
