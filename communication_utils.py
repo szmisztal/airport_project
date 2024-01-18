@@ -15,8 +15,11 @@ class ServerProtocols(CommunicationUtils):
     def points_for_airplane_protocol(self, points):
         return self.protocol_template(message = "Your points: ", body = points)
 
-    def direct_airplane_protocol(self, point):
-        return self.protocol_template(message = "Fly to: ", body = point)
+    def direct_airplane_protocol(self, coordinates):
+        return self.protocol_template(message = "Fly to: ", body = coordinates)
+
+    def airport_full_protocol(self):
+        return self.protocol_template(message = "Airport`s full: ", body = "You have to fly to another...")
 
 
 class ClientProtocols(CommunicationUtils):
