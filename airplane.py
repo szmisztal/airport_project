@@ -1,5 +1,6 @@
 import datetime
 import random
+from math_patterns import euclidean_formula, movement_formula
 
 
 class Airplane:
@@ -14,9 +15,6 @@ class Airplane:
         self.waiting_point = None
         self.zero_point = None
         self.speed = 100
-        self.move_to_initial_landing_point = True
-        self.move_to_waiting_sector = False
-        self.move_to_runaway = False
 
     @staticmethod
     def establish_init_airplane_coordinates():
@@ -44,10 +42,17 @@ class Airplane:
         self.waiting_point = points.get("waiting_point")
         self.zero_point = points.get("zero_point")
 
+    def fly_to_target(self, target):
+        distance = euclidean_formula(self.x, self.y, self.z, target[0], target[1], target[2])
+        if distance < 50:
+            return False
+        movement_formula(self, target[0], target[1], target[2])
+        return True
+
     def fuel_consumption(self):
         current_time = datetime.datetime.now()
         time_difference = current_time - self.date_of_appearance
-        if time_difference >= datetime.timedelta(seconds=10800):
+        if time_difference >= datetime.timedelta(seconds = 10800):
             return time_difference
         return None
 
@@ -59,9 +64,6 @@ class Airplane:
                 "initial_landing_point": self.initial_landing_point,
                 "waiting_point": self.waiting_point,
                 "zero_point": self.zero_point,
-                "move_to_initial_landing_point": self.move_to_initial_landing_point,
-                "move_to_waiting_point": self.move_to_waiting_sector,
-                "move_to_runaway": self.move_to_runaway
             }
         }
 
