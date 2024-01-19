@@ -52,25 +52,22 @@ class ClientHandler(threading.Thread):
         points_to_send = self.communication_utils.points_for_airplane_protocol(points_for_airplane)
         self.send_message_to_client(points_to_send)
 
-    def direct_airplane_to_point(self, coordinates):
-        direct_point = self.communication_utils.direct_airplane_protocol(coordinates)
+    def direct_airplane_to_point(self, target, coordinates):
+        direct_point = self.communication_utils.direct_airplane_protocol(target, coordinates)
         return self.send_message_to_client(direct_point)
 
-    def return_point_coordinates(self, quarter):
-        move_to_initial_point = self.airplane_object[self.airplane_key]["move_to_initial_landing_point"]
-        move_to_waiting_point = self.airplane_object[self.airplane_key]["move_to_waiting_point"]
-        move_to_runaway = self.airplane_object[self.airplane_key]["move_to_runaway"]
+    def return_point_coordinates(self, target, quarter):
         initial_landing_point_name = f"initial_landing_point_{quarter}"
         initial_landing_point = getattr(self.airport, initial_landing_point_name)
         waiting_point_name = f"waiting_point_for_landing_{quarter}"
         waiting_point = getattr(self.airport, waiting_point_name)
         zero_point_name = f"zero_point_{quarter[0]}"
         zero_point = getattr(self.airport, zero_point_name)
-        if move_to_initial_point:
+        if target == "initial landing point":
             return initial_landing_point.point_coordinates()
-        elif move_to_waiting_point:
+        elif target == "waiting point":
             return waiting_point.point_coordinates()
-        elif move_to_runaway:
+        elif target == "runaway":
             return zero_point.point_coordinates()
 
     def initial_correspondence_with_client(self):
@@ -80,7 +77,9 @@ class ClientHandler(threading.Thread):
         airplane_object_json = self.client_socket.recv(self.BUFFER)
         airplane_object = self.read_message_from_client(airplane_object_json)
         self.airplane_object = airplane_object["body"]
-        self.direct_airplane_to_point(self.return_point_coordinates(self.airplane_object[self.airplane_key]["quarter"]))
+        self.direct_airplane_to_point(f"Initial landing point - {self.airplane_object[self.airplane_key]['initial_landing_point']}",
+                                      self.return_point_coordinates("initial landing point",
+                                                                    self.airplane_object[self.airplane_key]["quarter"]))
 
     def run(self):
         self.initial_correspondence_with_client()
@@ -91,7 +90,14 @@ class ClientHandler(threading.Thread):
                 air_corridor_name = f"air_corridor_{self.airplane_object[self.airplane_key]['zero_point']}"
                 air_corridor = getattr(self.airport, air_corridor_name)
                 if air_corridor.occupied:
-                    pass
+                    self.direct_airplane_to_point(f"Waiting point - {self.airplane_object[self.airplane_key]['waiting_point']}",
+                                                  self.return_point_coordinates("waiting point",
+                                                                                self.airplane_object[self.airplane_key]["quarter"]))
+                else:
+                    self.direct_airplane_to_point(f"Zero point - {self.airplane_object[self.airplane_key]['zero_point']}",
+                              self.return_point_coordinates("runaway",
+                                                            self.airplane_object[self.airplane_key]["quarter"]))
+                    air_corridor.occupied = True
             else:
                 coordinates = [response_from_client.get("x"), response_from_client.get("y"), response_from_client.get("z")]
                 self.airplane_object[self.airplane_key]["coordinates"] = coordinates
@@ -107,7 +113,7 @@ class Server:
         self.lock = Lock()
         self.is_running = True
         self.start_date = datetime.datetime.now()
-        self.version = "0.5.2"
+        self.version = "0.7.0"
         self.airport = Airport()
         self.communication_utils = ServerProtocols()
         self.connection_pool = ConnectionPool(10, 100)
