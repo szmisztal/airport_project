@@ -28,3 +28,6 @@ class ClientProtocols(CommunicationUtils):
 
     def airplane_object_protocol(self, object):
         return self.protocol_template(message = "Our data: ", body = object)
+
+    def reaching_the_target_protocol(self, target):
+        return self.protocol_template(message = "We reached the target: ", body = target)
