@@ -82,6 +82,20 @@ class ClientHandler(threading.Thread):
         self.airplane_object = airplane_object["body"]
         self.direct_airplane_to_point(self.return_point_coordinates(self.airplane_object[self.airplane_key]["quarter"]))
 
+    def run(self):
+        self.initial_correspondence_with_client()
+        while self.is_running:
+            response_from_client_json = self.client_socket.recv(self.BUFFER)
+            response_from_client = self.data_utils.deserialize_json(response_from_client_json)
+            if "We reached the target" in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
+                air_corridor_name = f"air_corridor_{self.airplane_object[self.airplane_key]['zero_point']}"
+                air_corridor = getattr(self.airport, air_corridor_name)
+                if air_corridor.occupied:
+                    pass
+            else:
+                coordinates = [response_from_client.get("x"), response_from_client.get("y"), response_from_client.get("z")]
+                self.airplane_object[self.airplane_key]["coordinates"] = coordinates
+
 
 class Server:
     def __init__(self):
@@ -100,14 +114,13 @@ class Server:
         self.server_connection = self.connection_pool.get_connection()
         self.clients_list = []
 
-    # def close_client_socket_when_airplane_crashed_or_successfully_landed(self, airplane, client_socket):
-    #     if airplane in self.airport.crashed_airplanes or airplane in self.airport.airplanes_with_successfully_landing:
-    #         if airplane in self.airport.crashed_airplanes:
-    #             crash_message = self.communication_utils.airplane_crashed()
-    #             self.send_message_to_client(client_socket, crash_message)
-    #         elif airplane in self.airport.airplanes_with_successfully_landing:
-    #             landing_message = self.communication_utils.successfully_landing()
-    #             self.send_message_to_client(client_socket, landing_message)
+    def check_server_lifetime(self):
+        current_time = datetime.datetime.now()
+        time_difference = current_time - self.start_date
+        if time_difference >= datetime.timedelta(seconds = 3600):
+            return False
+        else:
+            return True
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
@@ -122,7 +135,7 @@ class Server:
                         self.stop(server_socket)
                     try:
                         client_socket, address = server_socket.accept()
-                        client_socket.settimeout(1)
+                        client_socket.settimeout(5)
                         try:
                             self.lock.acquire()
                             if len(self.clients_list) < 100:
@@ -131,7 +144,6 @@ class Server:
                                                                self.connection_pool.get_connection())
                                 self.clients_list.append(client_handler)
                                 client_handler.start()
-                                client_handler.initial_correspondence_with_client()
                             else:
                                 airport_full_message = self.communication_utils.airport_full_protocol()
                                 airport_full_message_json = self.data_utils.serialize_to_json(airport_full_message)
@@ -143,20 +155,13 @@ class Server:
                         finally:
                             self.lock.release()
                     except client_socket.timeout:
-                            continue
+                        client_socket.close()
+                        continue
             except Exception as e:
                 print(f"Error: {e}")
                 pass  # add exception service
             finally:
-                server_socket.close()
-
-    def check_server_lifetime(self):
-        current_time = datetime.datetime.now()
-        time_difference = current_time - self.start_date
-        if time_difference >= datetime.timedelta(seconds = 3600):
-            return False
-        else:
-            return True
+                self.stop(server_socket)
 
     def stop(self, server_socket):
         print("SERVER`S OUT...")
