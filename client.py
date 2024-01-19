@@ -51,6 +51,20 @@ class Client:
             coordinates = self.read_message_from_server(server_response_json)
             return coordinates
 
+    def fly_to_target(self, client_socket, target):
+        distance = euclidean_formula(self.airplane.x, self.airplane.y, self.airplane.z, target[0], target[1], target[2])
+        if distance < 50:
+            return False
+        movement_formula(self.airplane, target[0], target[1], target[2])
+        coordinates = self.communication_utils.coordinates_protocol(
+            {"x": self.airplane.x,
+             "y": self.airplane.y,
+             "z": self.airplane.z}
+        )
+        self.send_message_to_server(client_socket, coordinates)
+        time.sleep(1)
+        return True
+
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
             print("CLIENT`S UP...")
@@ -59,13 +73,13 @@ class Client:
             if welcome_message_from_server == None:
                 self.stop(client_socket)
             else:
-                coordinates = welcome_message_from_server["body"]
+                initial_landing_point_coordinates = welcome_message_from_server["body"]
                 while self.is_running:
-                    distance = euclidean_formula(self.airplane.x, self.airplane.y, self.airplane.z,
-                                                 coordinates[0], coordinates[1], coordinates[2])
-                    movement_formula(self.airplane, coordinates[0], coordinates[1], coordinates[2])
-                    time.sleep(1)
-                    self.send_message_to_server(client_socket, {"distance": distance})
+                    if self.airplane.move_to_initial_landing_point:
+                        fly_to_initial_landing_point = self.fly_to_target(client_socket, initial_landing_point_coordinates)
+                        if not fly_to_initial_landing_point:
+                            self.send_message_to_server(client_socket,
+                                                        self.communication_utils.reaching_the_target_protocol("Initial landing point"))
 
     def stop(self, client_socket):
         print("CLIENT`S OUT...")
