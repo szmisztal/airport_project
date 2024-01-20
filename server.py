@@ -10,12 +10,12 @@ from connection_pool import ConnectionPool
 
 
 class ClientHandler(threading.Thread):
-    def __init__(self, server, client_socket, address, thread_id, connection):
+    def __init__(self, server, client_socket, address, thread_id):
         super().__init__()
         self.client_socket = client_socket
         self.address = address
         self.thread_id = thread_id
-        self.connection = connection
+        self.connection = server.connection_pool.get_connection()
         self.BUFFER = BUFFER
         self.data_utils = DataUtils()
         self.communication_utils = ServerProtocols()
@@ -78,8 +78,7 @@ class ClientHandler(threading.Thread):
         airplane_object = self.read_message_from_client(airplane_object_json)
         self.airplane_object = airplane_object["body"]
         self.direct_airplane_to_point(f"Initial landing point - {self.airplane_object[self.airplane_key]['initial_landing_point']}",
-                                      self.return_point_coordinates("initial landing point",
-                                                                    self.airplane_object[self.airplane_key]["quarter"]))
+                                      self.return_point_coordinates("initial landing point", self.airplane_object[self.airplane_key]["quarter"]))
 
     def run(self):
         self.initial_correspondence_with_client()
@@ -91,16 +90,22 @@ class ClientHandler(threading.Thread):
                 air_corridor = getattr(self.airport, air_corridor_name)
                 if air_corridor.occupied:
                     self.direct_airplane_to_point(f"Waiting point - {self.airplane_object[self.airplane_key]['waiting_point']}",
-                                                  self.return_point_coordinates("waiting point",
-                                                                                self.airplane_object[self.airplane_key]["quarter"]))
+                                                  self.return_point_coordinates("waiting point", self.airplane_object[self.airplane_key]["quarter"]))
                 else:
                     self.direct_airplane_to_point(f"Zero point - {self.airplane_object[self.airplane_key]['zero_point']}",
-                              self.return_point_coordinates("runaway",
-                                                            self.airplane_object[self.airplane_key]["quarter"]))
+                              self.return_point_coordinates("runaway", self.airplane_object[self.airplane_key]["quarter"]))
                     air_corridor.occupied = True
+            elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
+                self.stop()
             else:
                 coordinates = [response_from_client.get("x"), response_from_client.get("y"), response_from_client.get("z")]
                 self.airplane_object[self.airplane_key]["coordinates"] = coordinates
+
+    def stop(self):
+        self.is_running = False
+        server.connection_pool.release_connection(self.connection)
+        server.clients_list.remove(self)
+        self.client_socket.close()
 
 
 class Server:
@@ -136,18 +141,17 @@ class Server:
             server_socket.listen()
             try:
                 while self.is_running:
-                    server_lifetime = self.check_server_lifetime()
-                    if not server_lifetime:
-                        self.stop(server_socket)
                     try:
+                        server_lifetime = self.check_server_lifetime()
+                        if not server_lifetime:
+                            self.stop(server_socket)
                         client_socket, address = server_socket.accept()
                         client_socket.settimeout(5)
                         try:
                             self.lock.acquire()
                             if len(self.clients_list) < 100:
                                 thread_id = self.data_utils.get_all_airplanes_list(self.server_connection)
-                                client_handler = ClientHandler(self, client_socket, address, thread_id + 1,
-                                                               self.connection_pool.get_connection())
+                                client_handler = ClientHandler(self, client_socket, address, thread_id + 1)
                                 self.clients_list.append(client_handler)
                                 client_handler.start()
                             else:
@@ -171,6 +175,8 @@ class Server:
 
     def stop(self, server_socket):
         print("SERVER`S OUT...")
+        for client in self.clients_list:
+            client.client_socket.close()
         self.is_running = False
         server_socket.close()
 
