@@ -4,7 +4,6 @@ from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, 
 from data_utils import DataUtils
 from airplane import Airplane
 from communication_utils import ClientProtocols
-from math_patterns import euclidean_formula, movement_formula
 
 
 class Client:
@@ -51,6 +50,15 @@ class Client:
             coordinates = self.read_message_from_server(server_response_json)
             return coordinates
 
+    def send_airplane_coordinates(self, client_socket):
+        coordinates = self.communication_utils.coordinates_protocol(
+            {"x": self.airplane.x,
+             "y": self.airplane.y,
+             "z": self.airplane.z}
+        )
+        self.send_message_to_server(client_socket, coordinates)
+        time.sleep(1)
+
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
             print("CLIENT`S UP...")
@@ -61,18 +69,32 @@ class Client:
             else:
                 initial_landing_point_coordinates = welcome_message_from_server["coordinates"]
                 while self.is_running:
-                    fly_to_initial_landing_point = self.airplane.fly_to_target(initial_landing_point_coordinates)
-                    if fly_to_initial_landing_point:
-                        coordinates = self.communication_utils.coordinates_protocol(
-                            {"x": self.airplane.x,
-                             "y": self.airplane.y,
-                             "z": self.airplane.z}
-                        )
-                        self.send_message_to_server(client_socket, coordinates)
-                        time.sleep(1)
-                    elif not fly_to_initial_landing_point:
-                        self.send_message_to_server(client_socket,
-                                                    self.communication_utils.reaching_the_target_protocol("Initial landing point"))
+                    try:
+                        fly_to_initial_landing_point = self.airplane.fly_to_target(initial_landing_point_coordinates)
+                        if fly_to_initial_landing_point:
+                            self.send_airplane_coordinates(client_socket)
+                        elif not fly_to_initial_landing_point:
+                            self.send_message_to_server(client_socket, self.communication_utils.reaching_the_target_protocol("Initial landing point"))
+                            order_from_server_json = client_socket.recv(self.BUFFER)
+                            order_from_server = self.read_message_from_server(order_from_server_json)
+                            if f"Waiting point - {self.airplane.waiting_point}" in order_from_server["message"]:
+                                waiting_point_coordinates = order_from_server["coordinates"]
+                                fly_to_waiting_point = self.airplane.fly_to_target(waiting_point_coordinates)
+                                if fly_to_waiting_point:
+                                    self.send_airplane_coordinates(client_socket)
+                            elif f"Zero point - {self.airplane.zero_point}" in order_from_server["message"]:
+                                runaway_coordinates = order_from_server["coordinates"]
+                                fly_to_zero_point = self.airplane.fly_to_target(runaway_coordinates)
+                                if fly_to_zero_point:
+                                    self.send_airplane_coordinates(client_socket)
+                                elif not fly_to_zero_point:
+                                    self.send_message_to_server(client_socket, self.communication_utils.successfully_landing_protocol())
+                                    self.stop(client_socket)
+                    except Exception as e:
+                        print(f"Error: {e}")
+                        pass  # add exception service
+                    finally:
+                        self.stop(client_socket)
 
     def stop(self, client_socket):
         print("CLIENT`S OUT...")
