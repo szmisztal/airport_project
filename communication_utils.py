@@ -31,3 +31,6 @@ class ClientProtocols(CommunicationUtils):
 
     def reaching_the_target_protocol(self, target):
         return self.protocol_template(message = "We reached the target: ", body = target)
+
+    def successfully_landing_protocol(self):
+        return self.protocol_template(message = "Successfully landing", body = "Goodbye !")
