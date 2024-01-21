@@ -53,8 +53,8 @@ class Airplane:
         current_time = datetime.datetime.now()
         time_difference = current_time - self.date_of_appearance
         if time_difference >= datetime.timedelta(seconds = 10800):
-            return time_difference
-        return None
+            return False
+        return True
 
     def parse_airplane_obj_to_json(self):
         return {
