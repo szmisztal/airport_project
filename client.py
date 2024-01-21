@@ -70,6 +70,10 @@ class Client:
                 initial_landing_point_coordinates = welcome_message_from_server["coordinates"]
                 while self.is_running:
                     try:
+                        fuel_reserves = self.airplane.fuel_consumption()
+                        if not fuel_reserves:
+                            self.send_message_to_server(client_socket, self.communication_utils.successfully_landing_protocol())
+                            self.stop(client_socket)
                         fly_to_initial_landing_point = self.airplane.fly_to_target(initial_landing_point_coordinates)
                         if fly_to_initial_landing_point:
                             self.send_airplane_coordinates(client_socket)
@@ -82,6 +86,8 @@ class Client:
                                 fly_to_waiting_point = self.airplane.fly_to_target(waiting_point_coordinates)
                                 if fly_to_waiting_point:
                                     self.send_airplane_coordinates(client_socket)
+                                elif not fly_to_waiting_point:
+                                    continue
                             elif f"Zero point - {self.airplane.zero_point}" in order_from_server["message"]:
                                 runaway_coordinates = order_from_server["coordinates"]
                                 fly_to_zero_point = self.airplane.fly_to_target(runaway_coordinates)
