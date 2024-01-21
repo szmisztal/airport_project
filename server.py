@@ -95,7 +95,8 @@ class ClientHandler(threading.Thread):
                     self.direct_airplane_to_point(f"Zero point - {self.airplane_object[self.airplane_key]['zero_point']}",
                               self.return_point_coordinates("runaway", self.airplane_object[self.airplane_key]["quarter"]))
                     air_corridor.occupied = True
-            elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
+            elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"] or \
+                    "Out of fuel !" in response_from_client["message"] and "We`re falling..." in response_from_client["body"]:
                 self.stop()
             else:
                 coordinates = [response_from_client.get("x"), response_from_client.get("y"), response_from_client.get("z")]
