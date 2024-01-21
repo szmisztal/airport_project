@@ -34,3 +34,6 @@ class ClientProtocols(CommunicationUtils):
 
     def successfully_landing_protocol(self):
         return self.protocol_template(message = "Successfully landing", body = "Goodbye !")
+
+    def out_of_fuel_protocol(self):
+        return self.protocol_template(message = "Out of fuel !", body = "We`re falling...")
