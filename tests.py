@@ -62,10 +62,13 @@ import time
 #     plt.draw()
 #
 # plt.show()
-a = Airplane(Airplane.establish_init_airplane_coordinates())
-a = a.parse_airplane_obj_to_json()
-print(a)
-update_data = {'quarter': 'NW','initial_landing_point': 'NW', 'waiting_point': 'NW', 'zero_point': 'N'}
-print("Airplane_None")
+color = "sf"
 
+match color:
+    case "red":
+        print("It's red")
+    case "blue":
+        print("It's blue")
+    case _:
+        print("It's a different color")
 
