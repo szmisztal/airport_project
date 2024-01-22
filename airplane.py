@@ -56,6 +56,11 @@ class Airplane:
             return False
         return True
 
+    def avoid_collision(self, avoidance_distance = 50):
+        self.x += avoidance_distance
+        self.y += avoidance_distance
+        self.z += 10
+
     def parse_airplane_obj_to_json(self):
         return {
             f"Airplane_{self.id}": {
@@ -66,5 +71,4 @@ class Airplane:
                 "zero_point": self.zero_point,
             }
         }
-
 
