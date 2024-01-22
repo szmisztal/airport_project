@@ -29,29 +29,23 @@ class Airport:
         elif coordinates["x"] in range(0, 5001) and coordinates["y"] in range(-5000, 0):
             return "SE"
 
-    def check_distance_between_airplanes(self):
-        if len(self.airplanes_in_the_air_list) > 1:
-            all_airplanes_combinations = list(itertools.combinations(self.airplanes_in_the_air_list, 2))
-            for airplane_combination in all_airplanes_combinations:
-                distance = euclidean_formula(airplane_combination[0], airplane_combination[1])
-                if 11 < distance < 100:
-                    self.avoid_collision(airplane_combination[0])
-                elif distance <= 10:
-                    self.crashed_airplanes.append(airplane_combination[0])
-                    self.crashed_airplanes.append(airplane_combination[1])
-            self.remove_airplane_from_the_airplanes_in_the_air_list(self.crashed_airplanes)
-
-    def avoid_collision(self, airplane, avoidance_distance = 50):
-        airplane.x += avoidance_distance
-        airplane.y += avoidance_distance
-        airplane.z += 10
-
-        # airplanes_combinations = list(itertools.product(airplane_1, self.airplanes_in_the_air_list))
-        # for airplane_combination in airplanes_combinations:
-        #     distance = euclidean_formula(airplane_combination[0].z + avoidance_distance, airplane_combination[1])
-        #     if airplane_combination[0] != airplane_combination[1] and distance > 150:
-        #         airplane_combination[0].z += avoidance_distance
-        #         return airplane_combination[0]
+    def check_distance_between_airplanes(self, airplane_object, airplane_id, airplanes_list):
+        if len(airplanes_list) > 1:
+            airplane_x = airplane_object[airplane_id]["coordinates"][0]
+            airplane_y= airplane_object[airplane_id]["coordinates"][1]
+            airplane_z = airplane_object[airplane_id]["coordinates"][2]
+            for other_airplane in airplanes_list:
+                if other_airplane.airplane_object[other_airplane.airplane_key] != airplane_id:
+                    other_airplane_x = other_airplane.airplane_object[other_airplane.airplane_key]["coordinates"][0]
+                    other_airplane_y = other_airplane.airplane_object[other_airplane.airplane_key]["coordinates"][1]
+                    other_airplane_z = other_airplane.airplane_object[other_airplane.airplane_key]["coordinates"][2]
+                    distance = euclidean_formula(airplane_x, airplane_y, airplane_z,
+                                                 other_airplane_x, other_airplane_y, other_airplane_z)
+                    if 10 < distance < 100:
+                        return 0        # airplane has to avoid collision
+                    elif distance < 10:
+                        return 1        # airplanes crashed
+        return 2                        # everything`s ok
 
 
 class AirCorridor:
