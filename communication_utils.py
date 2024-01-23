@@ -18,6 +18,9 @@ class ServerProtocols(CommunicationUtils):
     def direct_airplane_protocol(self, target, coordinates):
         return self.protocol_template(message = "Fly to: ", body = target, coordinates = coordinates)
 
+    def avoid_collision_protocol(self):
+        return self.protocol_template(message = "You`re to close to another airplane !", body = "Correct your flight")
+
     def airport_full_protocol(self):
         return self.protocol_template(message = "Airport`s full: ", body = "You have to fly to another...")
 
