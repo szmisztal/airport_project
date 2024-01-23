@@ -1,4 +1,3 @@
-import itertools
 from math_patterns import euclidean_formula
 
 
