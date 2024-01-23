@@ -62,13 +62,13 @@ import time
 #     plt.draw()
 #
 # plt.show()
-color = "sf"
+def return_point_coordinates(target):
+    match target:
+        case "initial landing point":
+            print(1)
+        case "waiting point":
+            print(2)
+        case "runaway":
+            print(3)
 
-match color:
-    case "red":
-        print("It's red")
-    case "blue":
-        print("It's blue")
-    case _:
-        print("It's a different color")
-
+return_point_coordinates("waiting point")
