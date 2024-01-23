@@ -1,6 +1,6 @@
+import selectors
 import socket as s
 import time
-from json import JSONDecodeError
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from data_utils import DataUtils
 from airplane import Airplane
@@ -15,6 +15,7 @@ class Client:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
+        self.selector = selectors.DefaultSelector()
         self.data_utils = DataUtils()
         self.is_running = True
         self.communication_utils = ClientProtocols()
@@ -60,10 +61,19 @@ class Client:
         self.send_message_to_server(client_socket, coordinates)
         time.sleep(1)
 
+    def events_service(self):
+        events = self.selector.select(timeout = 0)
+        for key, mask in events:
+            print(events)
+            if key.data is None:
+                server_message = key.fileobj.recv(self.BUFFER)
+                self.read_message_from_server(server_message)
+
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
             print("CLIENT`S UP...")
             client_socket.connect((HOST, PORT))
+            self.selector.register(client_socket, selectors.EVENT_READ, data = None)
             welcome_message_from_server = self.initial_correspondence_with_server(client_socket)
             if welcome_message_from_server == None:
                 self.stop(client_socket)
@@ -71,6 +81,7 @@ class Client:
                 initial_landing_point_coordinates = welcome_message_from_server["coordinates"]
                 self.airplane.fly_to_initial_landing_point = True
                 while self.is_running:
+                    self.events_service()
                     try:
                         fuel_reserves = self.airplane.fuel_consumption()
                         if not fuel_reserves:
