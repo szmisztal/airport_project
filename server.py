@@ -80,23 +80,35 @@ class ClientHandler(threading.Thread):
         self.direct_airplane_to_point(f"Initial landing point - {self.airplane_object[self.airplane_key]['initial_landing_point']}",
                                       self.return_point_coordinates("initial landing point", self.airplane_object[self.airplane_key]["quarter"]))
 
+    def check_possible_collisions(self):
+        possible_collisions = server.airport.check_distance_between_airplanes(self.airplane_object, self.airplane_key, server.clients_list)
+        if possible_collisions == 0:        # has to avoid collision
+            self.communication_utils.avoid_collision_protocol()
+        elif possible_collisions == 1:      # airplanes crashed
+                pass
+        elif possible_collisions == 2:      # everything` ok
+                pass
+
     def run(self):
         self.initial_correspondence_with_client()
         while self.is_running:
             response_from_client_json = self.client_socket.recv(self.BUFFER)
             response_from_client = self.data_utils.deserialize_json(response_from_client_json)
+            print(response_from_client)
             if "We reached the target" in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
                 air_corridor_name = f"air_corridor_{self.airplane_object[self.airplane_key]['zero_point']}"
                 air_corridor = getattr(self.airport, air_corridor_name)
-                if air_corridor.occupied:
+                if air_corridor.occupied == True:
                     self.direct_airplane_to_point(f"Waiting point - {self.airplane_object[self.airplane_key]['waiting_point']}",
                                                   self.return_point_coordinates("waiting point", self.airplane_object[self.airplane_key]["quarter"]))
                 else:
                     self.direct_airplane_to_point(f"Zero point - {self.airplane_object[self.airplane_key]['zero_point']}",
                               self.return_point_coordinates("runaway", self.airplane_object[self.airplane_key]["quarter"]))
                     air_corridor.occupied = True
-            elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"] or \
-                    "Out of fuel !" in response_from_client["message"] and "We`re falling..." in response_from_client["body"]:
+            elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
+                air_corridor.occupied = False
+                self.stop()
+            elif "Out of fuel !" in response_from_client["message"] and "We`re falling..." in response_from_client["body"]:
                 self.stop()
             else:
                 coordinates = [response_from_client.get("x"), response_from_client.get("y"), response_from_client.get("z")]
@@ -137,7 +149,6 @@ class Server:
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             print("SERVER`S UP...")
-            self.data_utils.create_connections_table(self.server_connection)
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
             try:
@@ -151,7 +162,7 @@ class Server:
                         try:
                             self.lock.acquire()
                             if len(self.clients_list) < 100:
-                                thread_id = self.data_utils.get_all_airplanes_list(self.server_connection)
+                                thread_id = len(self.clients_list)
                                 client_handler = ClientHandler(self, client_socket, address, thread_id + 1)
                                 self.clients_list.append(client_handler)
                                 client_handler.start()
