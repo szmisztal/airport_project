@@ -15,6 +15,9 @@ class Airplane:
         self.waiting_point = None
         self.zero_point = None
         self.speed = 100
+        self.fly_to_initial_landing_point = False
+        self.fly_to_runaway = False
+        self.fly_to_waiting_point = False
 
     @staticmethod
     def establish_init_airplane_coordinates():
@@ -44,10 +47,8 @@ class Airplane:
 
     def fly_to_target(self, target):
         distance = euclidean_formula(self.x, self.y, self.z, target[0], target[1], target[2])
-        if distance < 50:
-            return False
         movement_formula(self, target[0], target[1], target[2])
-        return True
+        return distance
 
     def fuel_consumption(self):
         current_time = datetime.datetime.now()
