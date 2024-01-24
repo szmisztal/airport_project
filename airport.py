@@ -40,11 +40,11 @@ class Airport:
                     other_airplane_z = other_airplane.airplane_object[other_airplane.airplane_key]["coordinates"][2]
                     distance = euclidean_formula(airplane_x, airplane_y, airplane_z,
                                                  other_airplane_x, other_airplane_y, other_airplane_z)
-                    if 300 < distance < 500:
-                        return 0        # airplane has to avoid collision
+                    if 200 < distance < 300:
+                        return False        # airplane has to avoid collision
                     elif distance < 100:
-                        return 1        # airplanes crashed
-        return 2                        # everything`s ok
+                        return None        # airplanes crashed
+        return True                        # everything`s ok
 
 
 class AirCorridor:
