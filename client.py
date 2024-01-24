@@ -125,10 +125,9 @@ class Client:
                                     self.is_running = False
                         except Exception as e:
                             print(f"Error: {e}")
-                            pass  # add exception service
+                            self.is_running = False
                 except Exception as e:
                     print(f"Error: {e}")
-                    pass # add exception service
                 finally:
                     self.stop(client_socket)
 
