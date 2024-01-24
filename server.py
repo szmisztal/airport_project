@@ -98,7 +98,7 @@ class ClientHandler(threading.Thread):
             while self.is_running:
                 response_from_client_json = self.client_socket.recv(self.BUFFER)
                 response_from_client = self.data_utils.deserialize_json(response_from_client_json)
-                print(response_from_client)
+                print(self.airplane_key, response_from_client)
                 if "We reached the target" in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
                     air_corridor_name = f"air_corridor_{self.airplane_object[self.airplane_key]['zero_point']}"
                     air_corridor = getattr(self.airport, air_corridor_name)
@@ -121,6 +121,7 @@ class ClientHandler(threading.Thread):
                     self.airplane_object[self.airplane_key]["coordinates"] = coordinates
         except Exception as e:
             print(f"Error: {e}")
+            self.is_running = False
         finally:
             self.stop()
 
