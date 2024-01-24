@@ -15,7 +15,7 @@ class Connection:
 
     def create_connection(self):
         try:
-            connection = sqlite3.connect(self.db_file)
+            connection = sqlite3.connect(self.db_file, check_same_thread = False)
             return connection
         except Error as e:
             print(f"Error: {e}")
