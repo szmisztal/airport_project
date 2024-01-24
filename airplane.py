@@ -57,7 +57,7 @@ class Airplane:
             return False
         return True
 
-    def avoid_collision(self, avoidance_distance = 50):
+    def avoid_collision(self, avoidance_distance):
         self.x += avoidance_distance
         self.y += avoidance_distance
         self.z += 10
