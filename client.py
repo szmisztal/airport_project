@@ -61,13 +61,22 @@ class Client:
         self.send_message_to_server(client_socket, coordinates)
         time.sleep(1)
 
-    def events_service(self):
+    def check_events(self):
         events = self.selector.select(timeout = 0)
-        for key, mask in events:
-            print(events)
-            if key.data is None:
-                server_message = key.fileobj.recv(self.BUFFER)
-                self.read_message_from_server(server_message)
+        if events:
+            for key, mask in events:
+                if key.data is None:
+                    server_message_json = key.fileobj.recv(self.BUFFER)
+                    server_message = self.read_message_from_server(server_message_json)
+                    return server_message
+
+    def events_service(self):
+        event_message = self.check_events()
+        if event_message is not None:
+            if "You`re to close to another airplane !" in event_message["message"] and "Correct your flight" in event_message["body"]:
+                self.airplane.avoid_collision(50)
+            elif "Crash !" in event_message["message"]:
+                self.is_running = False
 
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
@@ -80,48 +89,54 @@ class Client:
             else:
                 initial_landing_point_coordinates = welcome_message_from_server["coordinates"]
                 self.airplane.fly_to_initial_landing_point = True
-                while self.is_running:
-                    self.events_service()
-                    try:
-                        fuel_reserves = self.airplane.fuel_consumption()
-                        if not fuel_reserves:
-                            self.send_message_to_server(client_socket, self.communication_utils.out_of_fuel_protocol())
-                            self.stop(client_socket)
-                        if self.airplane.fly_to_initial_landing_point:
-                            distance = self.airplane.fly_to_target(initial_landing_point_coordinates)
-                            self.send_airplane_coordinates(client_socket)
-                            if distance < 50:
-                                self.send_message_to_server(client_socket, self.communication_utils.reaching_the_target_protocol("Initial landing point"))
-                                order_from_server_json = client_socket.recv(self.BUFFER)
-                                order_from_server = self.read_message_from_server(order_from_server_json)
-                                self.airplane.fly_to_initial_landing_point = False
-                                if f"Waiting point - {self.airplane.waiting_point}" in order_from_server["body"]:
-                                    self.airplane.fly_to_waiting_point = True
-                                    waiting_point_coordinates = order_from_server["coordinates"]
-                                elif f"Zero point - {self.airplane.zero_point}" in order_from_server["body"]:
-                                    self.airplane.fly_to_runaway = True
-                                    runaway_coordinates = order_from_server["coordinates"]
-                        elif self.airplane.fly_to_waiting_point:
-                            distance = self.airplane.fly_to_target(waiting_point_coordinates)
-                            self.send_airplane_coordinates(client_socket)
-                            if distance < 50:
-                                self.airplane.fly_to_waiting_point = False
-                                self.airplane.fly_to_initial_landing_point = True
-                        elif self.airplane.fly_to_runaway:
-                            distance = self.airplane.fly_to_target(runaway_coordinates)
-                            self.send_airplane_coordinates(client_socket)
-                            if distance < 25:
-                                self.send_message_to_server(client_socket, self.communication_utils.successfully_landing_protocol())
+                try:
+                    while self.is_running:
+                        self.events_service()
+                        try:
+                            fuel_reserves = self.airplane.fuel_consumption()
+                            if not fuel_reserves:
+                                self.send_message_to_server(client_socket, self.communication_utils.out_of_fuel_protocol())
                                 self.stop(client_socket)
-                    except Exception as e:
-                        print(f"Error: {e}")
-                        pass  # add exception service
-
+                            if self.airplane.fly_to_initial_landing_point:
+                                distance = self.airplane.fly_to_target(initial_landing_point_coordinates)
+                                self.send_airplane_coordinates(client_socket)
+                                if distance < 100:
+                                    self.send_message_to_server(client_socket, self.communication_utils.reaching_the_target_protocol("Initial landing point"))
+                                    order_from_server_json = client_socket.recv(self.BUFFER)
+                                    order_from_server = self.read_message_from_server(order_from_server_json)
+                                    self.airplane.fly_to_initial_landing_point = False
+                                    if f"Waiting point - {self.airplane.waiting_point}" in order_from_server["body"]:
+                                        self.airplane.fly_to_waiting_point = True
+                                        waiting_point_coordinates = order_from_server["coordinates"]
+                                    elif f"Zero point - {self.airplane.zero_point}" in order_from_server["body"]:
+                                        self.airplane.fly_to_runaway = True
+                                        runaway_coordinates = order_from_server["coordinates"]
+                            elif self.airplane.fly_to_waiting_point:
+                                distance = self.airplane.fly_to_target(waiting_point_coordinates)
+                                self.send_airplane_coordinates(client_socket)
+                                if distance < 100:
+                                    self.airplane.fly_to_waiting_point = False
+                                    self.airplane.fly_to_initial_landing_point = True
+                            elif self.airplane.fly_to_runaway:
+                                distance = self.airplane.fly_to_target(runaway_coordinates)
+                                self.send_airplane_coordinates(client_socket)
+                                if distance < 50:
+                                    self.send_message_to_server(client_socket, self.communication_utils.successfully_landing_protocol())
+                                    self.is_running = False
+                        except Exception as e:
+                            print(f"Error: {e}")
+                            pass  # add exception service
+                except Exception as e:
+                    print(f"Error: {e}")
+                    pass # add exception service
+                finally:
+                    self.stop(client_socket)
 
     def stop(self, client_socket):
         print("CLIENT`S OUT...")
-        self.is_running = False
+        self.selector.close()
         client_socket.close()
+
 
 
 if __name__ == "__main__":
