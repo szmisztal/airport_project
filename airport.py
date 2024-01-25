@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 from math_patterns import euclidean_formula
 
 
@@ -8,14 +9,15 @@ class Airport:
         self.initial_landing_point_NE = CustomPoint(2500, 450, 2000)
         self.initial_landing_point_SW = CustomPoint(-2500, -450, 2000)
         self.initial_landing_point_SE = CustomPoint(2500, -450, 2000)
-        self.waiting_point_for_landing_NW = CustomPoint(-3250, 800, 2350)
-        self.waiting_point_for_landing_NE = CustomPoint(3250, 800, 2350)
-        self.waiting_point_for_landing_SW = CustomPoint(-3250, -800, 2350)
-        self.waiting_point_for_landing_SE = CustomPoint(3250, -800, 2350)
+        self.waiting_point_for_landing_NW = CustomPoint(-3500, 1000, 2350)
+        self.waiting_point_for_landing_NE = CustomPoint(3500, 1000, 2350)
+        self.waiting_point_for_landing_SW = CustomPoint(-3500, -1000, 2350)
+        self.waiting_point_for_landing_SE = CustomPoint(3500, -1000, 2350)
         self.air_corridor_N = AirCorridor("N")
         self.air_corridor_S = AirCorridor("S")
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
+        self.radar = Radar(self)
 
     @staticmethod
     def establish_airplane_quarter(coordinates):
@@ -31,7 +33,7 @@ class Airport:
     def check_distance_between_airplanes(self, airplane_object, airplane_id, airplanes_list):
         if len(airplanes_list) > 1:
             airplane_x = airplane_object[airplane_id]["coordinates"][0]
-            airplane_y= airplane_object[airplane_id]["coordinates"][1]
+            airplane_y = airplane_object[airplane_id]["coordinates"][1]
             airplane_z = airplane_object[airplane_id]["coordinates"][2]
             for other_airplane in airplanes_list:
                 if other_airplane.airplane_object[other_airplane.airplane_key] != airplane_id:
@@ -45,6 +47,56 @@ class Airport:
                     elif distance < 100:
                         return None        # airplanes crashed
         return True                        # everything`s ok
+
+
+class Radar:
+    def __init__(self, airport):
+        self.airport = airport
+
+    def get_airplanes_with_coordinates_list(self, clients_list):
+        airplanes = {}
+        if len(clients_list) > 0:
+            for client in clients_list:
+                airplane_x = client.airplane_object[client.airplane_key]["coordinates"][0]
+                airplane_y = client.airplane_object[client.airplane_key]["coordinates"][1]
+                airplane_z = client.airplane_object[client.airplane_key]["coordinates"][2]
+                airplane = {client.airplane_key: (airplane_x, airplane_y, airplane_z)}
+                airplanes.update(airplane)
+        return airplanes
+
+    def config_a_graph(self, clients_list):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection = "3d")
+
+        ax.set_xlim([-5000, 5000])
+        ax.set_ylim([-5000, 5000])
+        ax.set_zlim([0, 5000])
+
+        points = {
+            "Zero Point N": self.airport.zero_point_N,
+            "Zero Point S": self.airport.zero_point_S
+        }
+
+        for label, coordinates in points.items():
+            x, y, z = coordinates.point_coordinates()
+            ax.scatter(x, y, z, label=label)
+
+        airplanes = self.get_airplanes_with_coordinates_list(clients_list)
+        if airplanes:
+            for label, coordinates in airplanes.items():
+                x, y, z = coordinates
+                ax.scatter(x, y, z, label = label)
+
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+
+        ax.legend(loc = "upper left", bbox_to_anchor = (0.8, 0.8))
+        plt.show()
+
+    def draw_a_graph(self, clients_list):
+        self.config_a_graph(clients_list)
+        plt.show()
 
 
 class AirCorridor:
@@ -70,5 +122,5 @@ class CustomPoint:
         self.z = z
 
     def point_coordinates(self):
-        return [self.x, self.y, self.z]
+        return (self.x, self.y, self.z)
 
