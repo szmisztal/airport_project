@@ -18,6 +18,7 @@ class Airport:
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
         self.radar = Radar(self)
+        self.airplanes_list = {}
 
     @staticmethod
     def establish_airplane_quarter(coordinates):
@@ -35,11 +36,11 @@ class Airport:
             airplane_x = airplane_object[airplane_id]["coordinates"][0]
             airplane_y = airplane_object[airplane_id]["coordinates"][1]
             airplane_z = airplane_object[airplane_id]["coordinates"][2]
-            for other_airplane in airplanes_list:
-                if other_airplane.airplane_object[other_airplane.airplane_key] != airplane_id:
-                    other_airplane_x = other_airplane.airplane_object[other_airplane.airplane_key]["coordinates"][0]
-                    other_airplane_y = other_airplane.airplane_object[other_airplane.airplane_key]["coordinates"][1]
-                    other_airplane_z = other_airplane.airplane_object[other_airplane.airplane_key]["coordinates"][2]
+            for airplane_number, airplane_details in airplanes_list.items():
+                if airplane_number != airplane_id:
+                    other_airplane_x = airplane_details["coordinates"][0]
+                    other_airplane_y = airplane_details["coordinates"][1]
+                    other_airplane_z = airplane_details["coordinates"][2]
                     distance = euclidean_formula(airplane_x, airplane_y, airplane_z,
                                                  other_airplane_x, other_airplane_y, other_airplane_z)
                     if 200 < distance < 300:
