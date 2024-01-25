@@ -1,4 +1,5 @@
 import datetime
+import logging
 import socket as s
 import threading
 from threading import Lock
@@ -7,6 +8,9 @@ from data_utils import DataUtils
 from communication_utils import ServerProtocols
 from airport import Airport
 from connection_pool import ConnectionPool
+
+
+logging.basicConfig(filename = "app.log", level = logging.DEBUG, format = "%(asctime)s - %(levelname)s - %(message)s")
 
 
 class ClientHandler(threading.Thread):
@@ -98,7 +102,6 @@ class ClientHandler(threading.Thread):
             while self.is_running:
                 response_from_client_json = self.client_socket.recv(self.BUFFER)
                 response_from_client = self.data_utils.deserialize_json(response_from_client_json)
-                print(self.airplane_key, response_from_client)
                 if "We reached the target" in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
                     air_corridor_name = f"air_corridor_{self.airplane_object[self.airplane_key]['zero_point']}"
                     air_corridor = getattr(self.airport, air_corridor_name)
@@ -120,7 +123,7 @@ class ClientHandler(threading.Thread):
                     coordinates = [response_from_client.get("x"), response_from_client.get("y"), response_from_client.get("z")]
                     self.airplane_object[self.airplane_key]["coordinates"] = coordinates
         except Exception as e:
-            print(f"Error: {e}")
+            logger.exception(f"Error in thread {self.thread_id}: {e}")
             self.is_running = False
         finally:
             self.stop()
@@ -129,6 +132,7 @@ class ClientHandler(threading.Thread):
         print(f"CLIENT: {self.thread_id} IS OUT...")
         connection_pool.release_connection(self.connection)
         server.clients_list.remove(self)
+        logger.info(f"Client {self.thread_id} out")
         self.client_socket.close()
 
 
@@ -170,6 +174,7 @@ class Server:
                         if not server_lifetime:
                             self.is_running = False
                         client_socket, address = server_socket.accept()
+                        logger.info(f"Connection from {address}")
                         client_socket.settimeout(5)
                         try:
                             self.lock.acquire()
@@ -184,18 +189,19 @@ class Server:
                                 client_socket.sendall(airport_full_message_json)
                                 client_socket.close()
                         except Exception as e:
-                            print(f"Error: {e}")
+                            logger.exception(f"Error in handler {thread_id}: {e}")
                             connection_pool.release_connection(client_handler.connection)
                             client_socket.close()
                             continue
                         finally:
                             self.lock.release()
                     except client_socket.timeout:
+                        logger.debug(f"Client socket timeout in client {thread_id}")
                         connection_pool.release_connection(client_handler.connection)
                         client_socket.close()
                         continue
             except Exception as e:
-                print(f"Error: {e}")
+                logger.exception(f"Error in server: {e}")
                 self.is_running = False
             finally:
                 self.stop(server_socket)
@@ -211,6 +217,7 @@ class Server:
 
 
 if __name__ == "__main__":
+    logger = logging.getLogger(__name__)
     connection_pool = ConnectionPool(10, 100)
     server = Server()
     server.start()
