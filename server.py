@@ -170,6 +170,7 @@ class Server:
             try:
                 while self.is_running:
                     try:
+                        self.airport.radar.draw_a_graph(self.clients_list)
                         server_lifetime = self.check_server_lifetime()
                         if not server_lifetime:
                             self.is_running = False
