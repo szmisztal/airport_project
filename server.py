@@ -85,7 +85,7 @@ class ClientHandler(threading.Thread):
                                       self.return_point_coordinates("initial landing point", self.airplane_object[self.airplane_key]["quarter"]))
 
     def check_possible_collisions(self):
-        possible_collisions = server.airport.check_distance_between_airplanes(self.airplane_object, self.airplane_key, server.clients_list)
+        possible_collisions = server.airport.check_distance_between_airplanes(self.airplane_object, self.airplane_key, server.airport.airplanes_list)
         if possible_collisions == False:       # has to avoid collision
             self.send_message_to_client(self.communication_utils.avoid_collision_protocol())
         elif possible_collisions == None:      # airplanes crashed
@@ -98,6 +98,7 @@ class ClientHandler(threading.Thread):
     def run(self):
         self.initial_correspondence_with_client()
         self.data_utils.add_new_connection_to_db(self.connection, self.airplane_key)
+        server.airport.airplanes_list.update(self.airplane_object)
         try:
             while self.is_running:
                 response_from_client_json = self.client_socket.recv(self.BUFFER)
@@ -120,8 +121,10 @@ class ClientHandler(threading.Thread):
                     self.data_utils.update_connection_status(self.connection, "CRASHED BY OUT OF FUEL", self.airplane_key)
                     self.is_running = False
                 else:
-                    coordinates = [response_from_client.get("x"), response_from_client.get("y"), response_from_client.get("z")]
+                    coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
                     self.airplane_object[self.airplane_key]["coordinates"] = coordinates
+                    server.airport.airplanes_list.update(self.airplane_object)
+                    print(server.airport.airplanes_list)
         except Exception as e:
             logger.exception(f"Error in thread {self.thread_id}: {e}")
             self.is_running = False
@@ -170,13 +173,14 @@ class Server:
             try:
                 while self.is_running:
                     try:
-                        self.airport.radar.draw_a_graph(self.clients_list)
+                        # self.airport.radar.draw_a_graph(self.clients_list)
                         server_lifetime = self.check_server_lifetime()
                         if not server_lifetime:
                             self.is_running = False
                         client_socket, address = server_socket.accept()
                         logger.info(f"Connection from {address}")
                         client_socket.settimeout(5)
+                        print(self.airport.airplanes_list)
                         try:
                             self.lock.acquire()
                             if len(self.clients_list) < 100:
