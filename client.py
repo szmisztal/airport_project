@@ -110,6 +110,7 @@ class Client:
                                         waiting_point_coordinates = order_from_server["coordinates"]
                                     elif f"Zero point - {self.airplane.zero_point}" in order_from_server["body"]:
                                         self.airplane.fly_to_runaway = True
+                                        self.airplane.speed = 75
                                         runaway_coordinates = order_from_server["coordinates"]
                             elif self.airplane.fly_to_waiting_point:
                                 distance = self.airplane.fly_to_target(waiting_point_coordinates)
@@ -120,7 +121,7 @@ class Client:
                             elif self.airplane.fly_to_runaway:
                                 distance = self.airplane.fly_to_target(runaway_coordinates)
                                 self.send_airplane_coordinates(client_socket)
-                                if distance < 50:
+                                if distance < 30:
                                     self.send_message_to_server(client_socket, self.communication_utils.successfully_landing_protocol())
                                     self.is_running = False
                         except Exception as e:
