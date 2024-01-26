@@ -10,7 +10,7 @@ from airport import Airport
 from connection_pool import ConnectionPool
 
 
-logging.basicConfig(filename = "app.log", level = logging.DEBUG, format = "%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(filename = "app.log", level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
 
 
 class ClientHandler(threading.Thread):
@@ -124,7 +124,6 @@ class ClientHandler(threading.Thread):
                     coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
                     self.airplane_object[self.airplane_key]["coordinates"] = coordinates
                     server.airport.airplanes_list.update(self.airplane_object)
-                    print(server.airport.airplanes_list)
         except Exception as e:
             logger.exception(f"Error in thread {self.thread_id}: {e}")
             self.is_running = False
@@ -149,7 +148,7 @@ class Server:
         self.lock = Lock()
         self.is_running = True
         self.start_date = datetime.datetime.now()
-        self.version = "0.9.3"
+        self.version = "0.9.5"
         self.airport = Airport()
         self.communication_utils = ServerProtocols()
         self.server_connection = connection_pool.get_connection()
@@ -173,14 +172,12 @@ class Server:
             try:
                 while self.is_running:
                     try:
-                        # self.airport.radar.draw_a_graph(self.clients_list)
                         server_lifetime = self.check_server_lifetime()
                         if not server_lifetime:
                             self.is_running = False
                         client_socket, address = server_socket.accept()
                         logger.info(f"Connection from {address}")
                         client_socket.settimeout(5)
-                        print(self.airport.airplanes_list)
                         try:
                             self.lock.acquire()
                             if len(self.clients_list) < 100:
@@ -201,7 +198,7 @@ class Server:
                         finally:
                             self.lock.release()
                     except client_socket.timeout:
-                        logger.debug(f"Client socket timeout in client {thread_id}")
+                        logger.exception(f"Client socket timeout in client {thread_id}")
                         connection_pool.release_connection(client_handler.connection)
                         client_socket.close()
                         continue
@@ -217,6 +214,7 @@ class Server:
             connection_pool.release_connection(client.connection)
             client.client_socket.close()
         self.data_utils.update_period_end(self.server_connection)
+        logger.info("Server`s out")
         server_socket.close()
 
 
