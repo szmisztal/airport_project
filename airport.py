@@ -22,8 +22,9 @@ class Airport:
         self.air_corridor_S = AirCorridor("S")
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
-        self.radar = Radar(self)
         self.airplanes_list = {}
+        self.radar = Radar(self)
+
 
     @staticmethod
     def establish_airplane_quarter(coordinates):
@@ -58,42 +59,36 @@ class Airport:
 class Radar:
     def __init__(self, airport):
         self.airport = airport
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111, projection="3d")
+        self.ax.set_xlim([-5000, 5000])
+        self.ax.set_ylim([-5000, 5000])
+        self.ax.set_zlim([0, 5000])
+        self.ax.set_xlabel("X")
+        self.ax.set_ylabel("Y")
+        self.ax.set_zlabel("Z")
+        self.ax.legend(loc="upper left", bbox_to_anchor=(0.8, 0.8))
+        self.draw()
 
-    def config_a_graph(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection = "3d")
-
-        ax.set_xlim([-5000, 5000])
-        ax.set_ylim([-5000, 5000])
-        ax.set_zlim([0, 5000])
-
+    def draw(self):
+        self.ax.clear()
         points = {
             "Zero Point N": self.airport.zero_point_N,
             "Zero Point S": self.airport.zero_point_S
         }
-
         for label, coordinates in points.items():
             x, y, z = coordinates.point_coordinates()
-            ax.scatter(x, y, z, label = label)
-
+            self.ax.scatter(x, y, z, label=label)
         if len(self.airport.airplanes_list) > 0:
             for airplane_id, airplane_details in self.airport.airplanes_list.items():
                 x = airplane_details["coordinates"][0]
                 z = airplane_details["coordinates"][1]
                 y = airplane_details["coordinates"][2]
-                ax.scatter(x, y, z, label = airplane_id)
+                self.ax.scatter(x, y, z, label=airplane_id)
 
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-
-        ax.legend(loc = "upper left", bbox_to_anchor = (0.8, 0.8))
-
-    def draw_a_graph(self):
-        self.config_a_graph()
-        plt.show(block = False)
-        time.sleep(1)
-        plt.close()
+        self.ax.legend(loc="upper left", bbox_to_anchor=(0.8, 0.8))
+        plt.draw()
+        plt.pause(0.01)
 
 
 class AirCorridor:
