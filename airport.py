@@ -60,15 +60,14 @@ class Radar:
     def __init__(self, airport):
         self.airport = airport
         self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111, projection="3d")
+        self.ax = self.fig.add_subplot(111, projection = "3d")
         self.ax.set_xlim([-5000, 5000])
         self.ax.set_ylim([-5000, 5000])
         self.ax.set_zlim([0, 5000])
         self.ax.set_xlabel("X")
         self.ax.set_ylabel("Y")
         self.ax.set_zlabel("Z")
-        self.ax.legend(loc="upper left", bbox_to_anchor=(0.8, 0.8))
-        self.draw()
+        self.ax.legend(loc="upper left", bbox_to_anchor = (0.8, 0.8))
 
     def draw(self):
         self.ax.clear()
@@ -78,17 +77,17 @@ class Radar:
         }
         for label, coordinates in points.items():
             x, y, z = coordinates.point_coordinates()
-            self.ax.scatter(x, y, z, label=label)
+            self.ax.scatter(x, y, z, label = label)
         if len(self.airport.airplanes_list) > 0:
             for airplane_id, airplane_details in self.airport.airplanes_list.items():
                 x = airplane_details["coordinates"][0]
                 z = airplane_details["coordinates"][1]
                 y = airplane_details["coordinates"][2]
-                self.ax.scatter(x, y, z, label=airplane_id)
+                self.ax.scatter(x, y, z, label = airplane_id)
 
-        self.ax.legend(loc="upper left", bbox_to_anchor=(0.8, 0.8))
+        self.ax.legend(loc = "upper left", bbox_to_anchor = (0.8, 0.8))
         plt.draw()
-        plt.pause(0.01)
+        plt.pause(1)
 
 
 class AirCorridor:
