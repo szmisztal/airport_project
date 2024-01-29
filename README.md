@@ -1,7 +1,7 @@
 # Airport Project
 
 ## Project Description
-Airport Project is a Python application that operates on a server-client architecture, where the server acts as the airport, and each client connecting to the server is treated as an aircraft.
+Project based on the Server-Client architecture, working with sockets, where the server represents an airport and each connecting client represents an airplane. The application operates automatically, simulating airport operations. The server sends commands to clients based on their position and distance, directing them towards safe landing. Each connection, collision between airplanes, and successful landing are recorded in a database. Visualization of airport traffic is achieved using the matplotlib library.
 
 ## Technologies Used
 - **Python 3**: The primary programming language used for implementing the project.
