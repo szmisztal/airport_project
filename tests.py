@@ -1,65 +1,54 @@
-from math_patterns import movement_formula
-from airport import Airport
-import time
+import pygame
+import sys
 from airplane import Airplane
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
+airplanes = {}
+airplane_1_coords = Airplane.establish_init_airplane_coordinates()
+airplane_2_coords = Airplane.establish_init_airplane_coordinates()
+airplane_1_obj = Airplane(airplane_1_coords)
+airplane_2_obj = Airplane(airplane_2_coords)
+airplane_1_obj.id = 1
+airplane_2_obj.id = 2
+airplane_1 = airplane_1_obj.parse_airplane_obj_to_json()
+airplane_2 = airplane_2_obj.parse_airplane_obj_to_json()
+airplanes.update(airplane_1)
+airplanes.update(airplane_2)
+print(airplanes)
+
+pygame.init()
+
+SCREEN_WIDTH = 500
+SCREEN_HEIGHT = 500
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Airport Traffic Visualization")
+
+WHITE = (255, 255, 255)
+GREEN = (0, 128, 0)
+RED = (255, 0, 0)
+
+AIRPORT_WIDTH = 500
+AIRPORT_HEIGHT = 500
+
+AIRPORT_X = (SCREEN_WIDTH - AIRPORT_WIDTH) // 2
+AIRPORT_Y = (SCREEN_HEIGHT - AIRPORT_HEIGHT) // 2
 
 
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-init_coords_1 = Airplane.establish_init_airplane_coordinates()
-init_coords_2 = Airplane.establish_init_airplane_coordinates()
-airplane_obj_1 = Airplane(init_coords_1)
-airplane_obj_2 = Airplane(init_coords_2)
+    screen.fill(WHITE)
 
-a_list = []
-a_list.append(airplane_obj_1)
-a_list.append(airplane_obj_2)
+    pygame.draw.rect(screen, GREEN, (AIRPORT_X, AIRPORT_Y, AIRPORT_WIDTH, AIRPORT_HEIGHT))
+    for airplane_id, airplane_details in airplanes.items():
+        airplane_x = airplane_details["coordinates"][0] / 10
+        airplane_y = airplane_details["coordinates"][1] / 10
+        airplane_z = airplane_details["coordinates"][2] / 10
+        print(airplane_x, airplane_y, airplane_z)
+        pygame.draw.circle(screen, RED, (airplane_x, airplane_y), 2)
+    pygame.display.flip()
 
-
-
-
-# airport_scatter = ax.scatter(*airport_coords, color='red', label='Airport')
-# airplane_scatters = []  # Lista do przechowywania obiektów scatter dla samolotów
-#
-# for a in a_list:
-#     airplane_scatter = ax.scatter(a.x, a.y, a.z, marker='o', label="Airplane")
-#     airplane_scatters.append(airplane_scatter)
-fig = plt.figure()
-
-
-def asd():
-
-    # global a_list
-    ax = fig.add_subplot(111, projection='3d')
-    # Usunięcie wszystkich punktów z wykresu
-    ax.clear()
-    airport_coords = (0, 0, 0)
-    ax.set_xlim([-5000, 5000])
-    ax.set_ylim([-5000, 5000])
-    ax.set_zlim([0, 5000])
-
-    # Dodanie lotniska
-    ax.scatter(*airport_coords, color='red', label='Airport')
-
-    # Dodanie nowych punktów dla każdego samolotu
-    for a in a_list:
-        ax.scatter(a.x, a.y, a.z, marker='o', label="Airplane")
-
-    ax.legend()
-    plt.draw()
-
-
-i = 0
-while i < 10:
-    asd()
-    for airplane in a_list:
-        movement_formula(airplane, 0, 0, 0)
-    if i == 5:
-        init_coords_3 = Airplane.establish_init_airplane_coordinates()
-        airplane_obj_3 = Airplane(init_coords_3)
-        a_list.append(airplane_obj_3)
-    plt.pause(1)
-    i += 1
-
-
+pygame.quit()
+sys.exit()
