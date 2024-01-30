@@ -171,8 +171,9 @@ class Server:
             server_socket.listen()
             try:
                 while self.is_running:
-                    radar.draw()
                     try:
+                        server_socket.settimeout(0.01)
+                        radar.draw()
                         server_lifetime = self.check_server_lifetime()
                         if not server_lifetime:
                             self.is_running = False
@@ -198,6 +199,8 @@ class Server:
                             continue
                         finally:
                             self.lock.release()
+                    except s.timeout:
+                        pass
                     except client_socket.timeout:
                         logger.exception(f"Client socket timeout in client {thread_id}")
                         connection_pool.release_connection(client_handler.connection)
