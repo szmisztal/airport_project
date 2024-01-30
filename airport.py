@@ -1,9 +1,5 @@
-import time
-
+import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import animation
-from matplotlib.animation import FuncAnimation
-
 from math_patterns import euclidean_formula
 
 
@@ -23,8 +19,6 @@ class Airport:
         self.zero_point_N = CustomPoint(0, 450 ,0)
         self.zero_point_S = CustomPoint(0, -450, 0)
         self.airplanes_list = {}
-        self.radar = Radar(self)
-
 
     @staticmethod
     def establish_airplane_quarter(coordinates):
@@ -67,7 +61,7 @@ class Radar:
         self.ax.set_xlabel("X")
         self.ax.set_ylabel("Y")
         self.ax.set_zlabel("Z")
-        self.ax.legend(loc="upper left", bbox_to_anchor = (0.8, 0.8))
+        self.ax.legend(loc = "upper left", bbox_to_anchor = (0.8, 0.8))
 
     def draw(self):
         self.ax.clear()
