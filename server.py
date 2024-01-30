@@ -6,7 +6,7 @@ from threading import Lock
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
 from data_utils import DataUtils
 from communication_utils import ServerProtocols
-from airport import Airport
+from airport import Airport, Radar
 from connection_pool import ConnectionPool
 
 
@@ -171,6 +171,7 @@ class Server:
             server_socket.listen()
             try:
                 while self.is_running:
+                    radar.draw()
                     try:
                         server_lifetime = self.check_server_lifetime()
                         if not server_lifetime:
@@ -223,4 +224,5 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     connection_pool = ConnectionPool(10, 100)
     server = Server()
+    radar = Radar(server.airport)
     server.start()
