@@ -22,7 +22,7 @@ class ServerProtocols(CommunicationUtils):
         return self.protocol_template(message = "You`re to close to another airplane !", body = "Correct your flight")
 
     def collision_protocol(self):
-        return self.protocol_template(message = "Crash !")
+        return self.protocol_template(message = "Crash !", body = "R.I.P.")
 
     def airport_full_protocol(self):
         return self.protocol_template(message = "Airport`s full: ", body = "You have to fly to another...")
