@@ -10,7 +10,7 @@ from airport import Airport, Radar
 from connection_pool import ConnectionPool
 
 
-logging.basicConfig(filename = "app.log", level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(filename = "servers_logs.log", level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
 
 
 class ClientHandler(threading.Thread):
@@ -149,7 +149,7 @@ class Server:
         self.lock = Lock()
         self.is_running = True
         self.start_date = datetime.datetime.now()
-        self.version = "0.9.5"
+        self.version = "1.0"
         self.airport = Airport()
         self.communication_utils = ServerProtocols()
         self.server_connection = connection_pool.get_connection()
