@@ -9,7 +9,7 @@ def euclidean_formula(airplane_x, airplane_y, airplane_z, target_x, target_y, ta
     ))
     return round(distance)
 
-def movement_formula(airplane, target_x, target_y, target_z, time_interval = 1):
+def movement_formula(airplane, target_x, target_y, target_z):
     delta_x = target_x - airplane.x
     delta_y = target_y - airplane.y
     delta_z = target_z - airplane.z
@@ -18,6 +18,6 @@ def movement_formula(airplane, target_x, target_y, target_z, time_interval = 1):
     v_x = airplane.speed * math.cos(angle_xy) * math.cos(angle_xz)
     v_y = airplane.speed * math.sin(angle_xy) * math.cos(angle_xz)
     v_z = airplane.speed * math.sin(angle_xz)
-    airplane.x += round(v_x * time_interval)
-    airplane.y += round(v_y * time_interval)
-    airplane.z += round(v_z * time_interval)
+    airplane.x += round(v_x)
+    airplane.y += round(v_y)
+    airplane.z += round(v_z)
