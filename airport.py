@@ -35,11 +35,11 @@ class Airport:
             airplane_x = airplane_object[airplane_id]["coordinates"][0]
             airplane_y = airplane_object[airplane_id]["coordinates"][1]
             airplane_z = airplane_object[airplane_id]["coordinates"][2]
-            for airplane_number, airplane_details in airplanes_list.items():
-                if airplane_number != airplane_id:
-                    other_airplane_x = airplane_details["coordinates"][0]
-                    other_airplane_y = airplane_details["coordinates"][1]
-                    other_airplane_z = airplane_details["coordinates"][2]
+            for other_airplane, other_airplane_details in airplanes_list.items():
+                if other_airplane != airplane_id:
+                    other_airplane_x = other_airplane_details["coordinates"][0]
+                    other_airplane_y = other_airplane_details["coordinates"][1]
+                    other_airplane_z = other_airplane_details["coordinates"][2]
                     distance = euclidean_formula(airplane_x, airplane_y, airplane_z,
                                                  other_airplane_x, other_airplane_y, other_airplane_z)
                     if 200 < distance < 300:
@@ -54,9 +54,9 @@ class Radar:
         self.airport = airport
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111, projection = "3d")
-        self.ax.set_xlim([-5000, 5000])
-        self.ax.set_ylim([-5000, 5000])
-        self.ax.set_zlim([0, 5000])
+        self.ax.set_xlim(-5000, 5000)
+        self.ax.set_ylim(-5000, 5000)
+        self.ax.set_zlim(0, 5000)
         self.ax.set_xlabel("X")
         self.ax.set_ylabel("Y")
         self.ax.set_zlabel("Z")
@@ -74,8 +74,8 @@ class Radar:
         if len(self.airport.airplanes_list) > 0:
             for airplane_id, airplane_details in list(self.airport.airplanes_list.items()):
                 x = airplane_details["coordinates"][0]
-                z = airplane_details["coordinates"][1]
-                y = airplane_details["coordinates"][2]
+                y = airplane_details["coordinates"][1]
+                z = airplane_details["coordinates"][2]
                 self.ax.scatter(x, y, z, label = airplane_id, marker = "^", s = 30)
         self.ax.legend(loc = "upper left", bbox_to_anchor = (0.8, 0.8))
         plt.draw()
