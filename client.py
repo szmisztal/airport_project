@@ -1,10 +1,14 @@
 import selectors
 import socket as s
 import time
+import logging
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from data_utils import DataUtils
 from airplane import Airplane
 from communication_utils import ClientProtocols
+
+
+logging.basicConfig(filename = "clients_logs.log", level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
 
 
 class Client:
@@ -75,7 +79,7 @@ class Client:
         if event_message is not None:
             if "You`re to close to another airplane !" in event_message["message"] and "Correct your flight" in event_message["body"]:
                 self.airplane.avoid_collision(50)
-            elif "Crash !" in event_message["message"]:
+            elif "Crash !" in event_message["message"] and "R.I.P." in event_message["body"]:
                 self.is_running = False
 
     def start(self):
@@ -125,10 +129,11 @@ class Client:
                                     self.send_message_to_server(client_socket, self.communication_utils.successfully_landing_protocol())
                                     self.is_running = False
                         except Exception as e:
-                            print(f"Error: {e}")
+                            logger.exception(f"Error: {e}")
                             self.is_running = False
                 except Exception as e:
-                    print(f"Error: {e}")
+                    logger.exception(f"Error: {e}")
+                    self.is_running = False
                 finally:
                     self.stop(client_socket)
 
@@ -140,5 +145,6 @@ class Client:
 
 
 if __name__ == "__main__":
+    logger = logging.getLogger(__name__)
     client = Client()
     client.start()
