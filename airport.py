@@ -1,4 +1,3 @@
-import matplotlib
 import matplotlib.pyplot as plt
 from math_patterns import euclidean_formula
 
@@ -71,14 +70,13 @@ class Radar:
         }
         for label, coordinates in points.items():
             x, y, z = coordinates.point_coordinates()
-            self.ax.scatter(x, y, z, label = label)
+            self.ax.scatter(x, y, z, label = label, marker = "*", s = 100)
         if len(self.airport.airplanes_list) > 0:
-            for airplane_id, airplane_details in self.airport.airplanes_list.items():
+            for airplane_id, airplane_details in list(self.airport.airplanes_list.items()):
                 x = airplane_details["coordinates"][0]
                 z = airplane_details["coordinates"][1]
                 y = airplane_details["coordinates"][2]
-                self.ax.scatter(x, y, z, label = airplane_id)
-
+                self.ax.scatter(x, y, z, label = airplane_id, marker = "^", s = 30)
         self.ax.legend(loc = "upper left", bbox_to_anchor = (0.8, 0.8))
         plt.draw()
         plt.pause(1)
