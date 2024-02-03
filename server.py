@@ -123,6 +123,7 @@ class ClientHandler(threading.Thread):
                 else:
                     coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
                     self.airplane_object[self.airplane_key]["coordinates"] = coordinates
+                    self.check_possible_collisions()
                     server.airport.airplanes_list.update(self.airplane_object)
         except Exception as e:
             logger.exception(f"Error in thread {self.thread_id}: {e}")
