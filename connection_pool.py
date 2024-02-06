@@ -2,7 +2,7 @@ from threading import Lock
 import schedule
 import sqlite3
 from sqlite3 import Error
-from data_utils import DataUtils
+from data_utils import SerializeUtils
 from variables import db_file
 
 
@@ -30,7 +30,7 @@ class ConnectionPool:
         self.min_number_of_connections = min_numbers_of_connections
         self.max_number_of_connections = max_number_of_connections
         self.create_start_connections()
-        self.data_utils = DataUtils()
+        self.serialize_utils = SerializeUtils()
         self.connections_manager()
 
     def create_start_connections(self):
