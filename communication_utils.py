@@ -9,37 +9,37 @@ class CommunicationUtils:
 
 
 class ServerProtocols(CommunicationUtils):
-    def welcome_protocol(self, id):
+    def welcome_message_to_client(self, id):
         return self.protocol_template(message = "Welcome to our airport !", body = "Submit your coordinates", id = id)
 
-    def points_for_airplane_protocol(self, points):
+    def points_for_airplane_message(self, points):
         return self.protocol_template(message = "Your points: ", body = points)
 
-    def direct_airplane_protocol(self, target, coordinates):
+    def direct_airplane_message(self, target, coordinates):
         return self.protocol_template(message = "Fly to: ", body = target, coordinates = coordinates)
 
-    def avoid_collision_protocol(self):
+    def avoid_collision_message(self):
         return self.protocol_template(message = "You`re to close to another airplane !", body = "Correct your flight")
 
-    def collision_protocol(self):
+    def collision_message(self):
         return self.protocol_template(message = "Crash !", body = "R.I.P.")
 
-    def airport_full_protocol(self):
+    def airport_is_full_message(self):
         return self.protocol_template(message = "Airport`s full: ", body = "You have to fly to another...")
 
 
 class ClientProtocols(CommunicationUtils):
-    def coordinates_protocol(self, coordinates):
+    def airplane_coordinates_message(self, coordinates):
         return self.protocol_template(message = "Our coordinates: ", body = coordinates)
 
-    def airplane_object_protocol(self, object):
+    def message_with_airplane_object(self, object):
         return self.protocol_template(message = "Our data: ", body = object)
 
-    def reaching_the_target_protocol(self, target):
+    def reaching_the_target_message(self, target):
         return self.protocol_template(message = "We reached the target: ", body = target)
 
-    def successfully_landing_protocol(self):
+    def successfully_landing_message(self):
         return self.protocol_template(message = "Successfully landing", body = "Goodbye !")
 
-    def out_of_fuel_protocol(self):
+    def out_of_fuel_message(self):
         return self.protocol_template(message = "Out of fuel !", body = "We`re falling...")
