@@ -3,7 +3,7 @@ from sqlite3 import Error
 from variables import encode_format
 
 
-class DataUtils:
+class SerializeUtils:
 
     def serialize_to_json(self, dict_data):
         return json.dumps(dict_data).encode(encode_format)
@@ -11,20 +11,22 @@ class DataUtils:
     def deserialize_json(self, dict_data):
         return json.loads(dict_data)
 
+
+class DatabaseUtils:
+
     def execute_sql_query(self, connection, query, *args, fetch_option = None):
-        try:
-            connection.cursor.execute(query, *args)
-            connection.connection.commit()
-            if fetch_option == "fetchone":
-                return connection.cursor.fetchone()
-            elif fetch_option == "fetchall":
-                return connection.cursor.fetchall()
-            else:
-                return None
-        except Error as e:
-            print(f"Error: {e}")
-            connection.connection.rollback()
-            return None
+            try:
+                connection.cursor.execute(query, *args)
+                connection.connection.commit()
+                if fetch_option == "fetchone":
+                    return connection.cursor.fetchone()
+                elif fetch_option == "fetchall":
+                    return connection.cursor.fetchall()
+                else:
+                    return None
+            except Error as e:
+                print(f"Error: {e}")
+                connection.connection.rollback()
 
     def create_db_tables(self, connection):
         self.create_server_periods_table(connection)
