@@ -21,3 +21,4 @@ def movement_formula(airplane, target_x, target_y, target_z):
     airplane.x += round(v_x)
     airplane.y += round(v_y)
     airplane.z += round(v_z)
+    return airplane.x, airplane.y, airplane.z
