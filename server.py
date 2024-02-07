@@ -5,7 +5,7 @@ import threading
 from threading import Lock
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
 from data_utils import SerializeUtils, DatabaseUtils
-from communication_utils import ServerProtocols
+from communication_utils import ServerProtocols, HandlerProtocols
 from airport import Airport, Radar
 from connection_pool import ConnectionPool
 
@@ -14,7 +14,7 @@ logging.basicConfig(filename = "servers_logs.log", level = logging.INFO, format 
 
 
 class ClientHandler(threading.Thread):
-    def __init__(self, server, client_socket, address, thread_id):
+    def __init__(self, client_socket, address, thread_id):
         super().__init__()
         self.client_socket = client_socket
         self.address = address
@@ -23,9 +23,8 @@ class ClientHandler(threading.Thread):
         self.BUFFER = BUFFER
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
-        self.communication_utils = ServerProtocols()
+        self.communication_utils = HandlerProtocols()
         self.is_running = True
-        self.airport = server.airport
         self.airplane_object = None
         self.airplane_key = f"Airplane_{self.thread_id}"
 
@@ -47,7 +46,7 @@ class ClientHandler(threading.Thread):
         return coordinates
 
     def establish_all_service_points_for_airplane(self, coordinates):
-        quarter = self.airport.establish_airplane_quarter(coordinates)
+        quarter = server.airport.establish_airplane_quarter(coordinates)
         points_for_airplane = {
             "quarter": quarter,
             "initial_landing_point": quarter,
@@ -62,18 +61,12 @@ class ClientHandler(threading.Thread):
         return self.send_message_to_client(direct_point)
 
     def return_point_coordinates(self, target, quarter):
-        initial_landing_point_name = f"initial_landing_point_{quarter}"
-        initial_landing_point = getattr(self.airport, initial_landing_point_name)
-        waiting_point_name = f"waiting_point_for_landing_{quarter}"
-        waiting_point = getattr(self.airport, waiting_point_name)
-        zero_point_name = f"zero_point_{quarter[0]}"
-        zero_point = getattr(self.airport, zero_point_name)
         if target == "initial landing point":
-            return initial_landing_point.point_coordinates()
+            return server.airport.initial_landing_point[quarter].point_coordinates()
         elif target == "waiting point":
-            return waiting_point.point_coordinates()
+            return server.airport.waiting_point[quarter].point_coordinates()
         elif target == "runaway":
-            return zero_point.point_coordinates()
+            return server.airport.zero_point[quarter[0]].point_coordinates()
 
     def initial_correspondence_with_client(self):
         self.welcome_message(self.thread_id)
@@ -92,6 +85,7 @@ class ClientHandler(threading.Thread):
         elif possible_collisions == None:      # airplanes crashed
             self.send_message_to_client(self.communication_utils.collision_message())
             self.database_utils.update_connection_status(self.connection, "CRASHED BY COLLISION", self.airplane_key)
+            del server.airport.airplanes_list[self.airplane_key]
             self.is_running = False
         else:                                  # everything` ok
             pass
@@ -105,8 +99,7 @@ class ClientHandler(threading.Thread):
                 response_from_client_json = self.client_socket.recv(self.BUFFER)
                 response_from_client = self.serialize_utils.deserialize_json(response_from_client_json)
                 if "We reached the target" in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
-                    air_corridor_name = f"air_corridor_{self.airplane_object[self.airplane_key]['zero_point']}"
-                    air_corridor = getattr(self.airport, air_corridor_name)
+                    air_corridor = server.airport.air_corridor[self.airplane_object[self.airplane_key]["zero_point"]]
                     if air_corridor.occupied == True:
                         self.direct_airplane_to_point(f"Waiting point - {self.airplane_object[self.airplane_key]['waiting_point']}",
                                                       self.return_point_coordinates("waiting point", self.airplane_object[self.airplane_key]["quarter"]))
@@ -117,9 +110,11 @@ class ClientHandler(threading.Thread):
                 elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
                     air_corridor.occupied = False
                     self.database_utils.update_connection_status(self.connection, "SUCCESSFULLY LANDING", self.airplane_key)
+                    del server.airport.airplanes_list[self.airplane_key]
                     self.is_running = False
                 elif "Out of fuel !" in response_from_client["message"] and "We`re falling..." in response_from_client["body"]:
                     self.database_utils.update_connection_status(self.connection, "CRASHED BY OUT OF FUEL", self.airplane_key)
+                    del server.airport.airplanes_list[self.airplane_key]
                     self.is_running = False
                 else:
                     coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
