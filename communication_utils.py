@@ -9,6 +9,11 @@ class CommunicationUtils:
 
 
 class ServerProtocols(CommunicationUtils):
+    def airport_is_full_message(self):
+        return self.protocol_template(message = "Airport`s full: ", body = "You have to fly to another...")
+
+
+class HandlerProtocols(CommunicationUtils):
     def welcome_message_to_client(self, id):
         return self.protocol_template(message = "Welcome to our airport !", body = "Submit your coordinates", id = id)
 
@@ -23,9 +28,6 @@ class ServerProtocols(CommunicationUtils):
 
     def collision_message(self):
         return self.protocol_template(message = "Crash !", body = "R.I.P.")
-
-    def airport_is_full_message(self):
-        return self.protocol_template(message = "Airport`s full: ", body = "You have to fly to another...")
 
 
 class ClientProtocols(CommunicationUtils):
