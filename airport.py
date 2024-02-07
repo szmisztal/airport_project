@@ -5,18 +5,26 @@ from math_patterns import euclidean_formula
 class Airport:
     def __init__(self):
         self.airport_area = CustomSector(-5000, 5000, -5000, 5000, 0, 5000)
-        self.initial_landing_point_NW = CustomPoint(-2000, 450, 2000)
-        self.initial_landing_point_NE = CustomPoint(2000, 450, 2000)
-        self.initial_landing_point_SW = CustomPoint(-2000, -450, 2000)
-        self.initial_landing_point_SE = CustomPoint(2000, -450, 2000)
-        self.waiting_point_for_landing_NW = CustomPoint(-3500, 1000, 2350)
-        self.waiting_point_for_landing_NE = CustomPoint(3500, 1000, 2350)
-        self.waiting_point_for_landing_SW = CustomPoint(-3500, -1000, 2350)
-        self.waiting_point_for_landing_SE = CustomPoint(3500, -1000, 2350)
-        self.air_corridor_N = AirCorridor("N")
-        self.air_corridor_S = AirCorridor("S")
-        self.zero_point_N = CustomPoint(0, 450 ,0)
-        self.zero_point_S = CustomPoint(0, -450, 0)
+        self.initial_landing_point = {
+                    "NW": CustomPoint(-2000, 450, 2000),
+                    "NE": CustomPoint(2000, 450, 2000),
+                    "SW": CustomPoint(-2000, -450, 2000),
+                    "SE": CustomPoint(2000, -450, 2000)
+        }
+        self.waiting_point = {
+                    "NW": CustomPoint(-3500, 1000, 2350),
+                    "NE": CustomPoint(3500, 1000, 2350),
+                    "SW": CustomPoint(-3500, -1000, 2350),
+                    "SE": CustomPoint(3500, -1000, 2350)
+        }
+        self.zero_point = {
+                    "N": CustomPoint(0, 450, 0),
+                    "S": CustomPoint(0, -450, 0)
+        }
+        self.air_corridor = {
+                    "N": AirCorridor("N"),
+                    "S": AirCorridor("S")
+        }
         self.airplanes_list = {}
 
     @staticmethod
@@ -42,9 +50,9 @@ class Airport:
                     other_airplane_z = other_airplane_details["coordinates"][2]
                     distance = euclidean_formula(airplane_x, airplane_y, airplane_z,
                                                  other_airplane_x, other_airplane_y, other_airplane_z)
-                    if 200 < distance < 300:
+                    if 300 < distance < 400:
                         return False        # airplane has to avoid collision
-                    elif distance < 100:
+                    elif distance < 50:
                         return None        # airplanes crashed
         return True                        # everything`s ok
 
@@ -65,8 +73,8 @@ class Radar:
     def draw(self):
         self.ax.clear()
         points = {
-            "Zero Point N": self.airport.zero_point_N,
-            "Zero Point S": self.airport.zero_point_S
+            "Zero Point N": self.airport.zero_point["N"],
+            "Zero Point S": self.airport.zero_point["S"]
         }
         for label, coordinates in points.items():
             x, y, z = coordinates.point_coordinates()
