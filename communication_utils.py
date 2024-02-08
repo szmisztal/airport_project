@@ -17,11 +17,15 @@ class HandlerProtocols(CommunicationUtils):
     def welcome_message_to_client(self, id):
         return self.protocol_template(message = "Welcome to our airport !", body = "Submit your coordinates", id = id)
 
-    def points_for_airplane_message(self, points):
-        return self.protocol_template(message = "Your points: ", body = points)
+    def points_for_airplane_message(self, quarter, init_point_coordinates, waiting_point_coordinates, zero_point_coordinates):
+        return self.protocol_template(message = "Your quarter: ",
+                                      body = quarter,
+                                      init_point_coordinates = init_point_coordinates,
+                                      waiting_point_coordinates = waiting_point_coordinates,
+                                      zero_point_coordinates = zero_point_coordinates)
 
-    def direct_airplane_message(self, target, coordinates):
-        return self.protocol_template(message = "Fly to: ", body = target, coordinates = coordinates)
+    def direct_airplane_message(self, target):
+        return self.protocol_template(message = "Fly to: ", body = target)
 
     def avoid_collision_message(self):
         return self.protocol_template(message = "You`re to close to another airplane !", body = "Correct your flight")
