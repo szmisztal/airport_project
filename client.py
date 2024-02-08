@@ -23,22 +23,22 @@ class Client:
         self.serialize_utils = SerializeUtils()
         self.is_running = True
         self.communication_utils = ClientProtocols()
-        self.airplane = Airplane(Airplane.establish_init_airplane_coordinates())
+        self.airplane = Airplane(self, Airplane.establish_init_airplane_coordinates())
 
-    def read_message_from_server(self, data):
-        deserialized_data = self.serialize_utils.deserialize_json(data)
-        print(f">>> {deserialized_data['message']} {deserialized_data['body']}.")
-        return deserialized_data
+    def read_message_from_server(self, client_socket):
+        message_from_server_json = client_socket.recv(self.BUFFER)
+        deserialized_message = self.serialize_utils.deserialize_json(message_from_server_json)
+        print(f">>> {deserialized_message['message']} {deserialized_message['body']}.")
+        return deserialized_message
 
     def send_message_to_server(self, client_socket, data):
         client_request = self.serialize_utils.serialize_to_json(data)
         client_socket.sendall(client_request)
 
     def initial_correspondence_with_server(self, client_socket):
-        server_response_json = client_socket.recv(self.BUFFER)
-        server_response = self.read_message_from_server(server_response_json)
+        server_response = self.read_message_from_server(client_socket)
         if "Airport`s full: " in server_response["message"] and "You have to fly to another..." in server_response["body"]:
-            return None
+            self.stop(client_socket)
         else:
             self.airplane.id = server_response["id"]
             coordinates = self.communication_utils.airplane_coordinates_message(
@@ -47,14 +47,12 @@ class Client:
                  "z": self.airplane.z}
             )
             self.send_message_to_server(client_socket, coordinates)
-            points_for_airplane_json = client_socket.recv(self.BUFFER)
-            points = self.read_message_from_server(points_for_airplane_json)["body"]
+            points = self.read_message_from_server(client_socket)
             self.airplane.set_points(points)
             airplane_obj = self.communication_utils.message_with_airplane_object(self.airplane.parse_airplane_obj_to_json())
             self.send_message_to_server(client_socket, airplane_obj)
-            server_response_json = client_socket.recv(self.BUFFER)
-            coordinates = self.read_message_from_server(server_response_json)
-            return coordinates
+            self.read_message_from_server(client_socket)
+            self.airplane.fly_to_initial_landing_point = True
 
     def send_airplane_coordinates(self, client_socket):
         coordinates = self.communication_utils.airplane_coordinates_message(
@@ -71,7 +69,8 @@ class Client:
             for key, mask in events:
                 if key.data is None:
                     server_message_json = key.fileobj.recv(self.BUFFER)
-                    server_message = self.read_message_from_server(server_message_json)
+                    server_message = self.serialize_utils.deserialize_json(server_message_json)
+                    print(server_message)
                     return server_message
 
     def handling_additional_messages_from_server(self):
@@ -87,55 +86,16 @@ class Client:
             print("CLIENT`S UP...")
             client_socket.connect((HOST, PORT))
             self.selector.register(client_socket, selectors.EVENT_READ, data = None)
-            welcome_message_from_server = self.initial_correspondence_with_server(client_socket)
-            if welcome_message_from_server == None:
+            try:
+                self.initial_correspondence_with_server(client_socket)
+                while self.is_running:
+                    self.handling_additional_messages_from_server()
+                    self.airplane.airplane_movement_manager(client_socket)
+            except Exception as e:
+                logger.exception(f"Error: {e}")
+                self.is_running = False
+            finally:
                 self.stop(client_socket)
-            else:
-                initial_landing_point_coordinates = welcome_message_from_server["coordinates"]
-                self.airplane.fly_to_initial_landing_point = True
-                try:
-                    while self.is_running:
-                        self.handling_additional_messages_from_server()
-                        try:
-                            fuel_reserves = self.airplane.fuel_consumption()
-                            if not fuel_reserves:
-                                self.send_message_to_server(client_socket, self.communication_utils.out_of_fuel_message())
-                                self.stop(client_socket)
-                            if self.airplane.fly_to_initial_landing_point:
-                                distance = self.airplane.fly_to_target(initial_landing_point_coordinates)
-                                self.send_airplane_coordinates(client_socket)
-                                if distance < 100:
-                                    self.send_message_to_server(client_socket, self.communication_utils.reaching_the_target_message("Initial landing point"))
-                                    order_from_server_json = client_socket.recv(self.BUFFER)
-                                    order_from_server = self.read_message_from_server(order_from_server_json)
-                                    self.airplane.fly_to_initial_landing_point = False
-                                    if f"Waiting point - {self.airplane.waiting_point}" in order_from_server["body"]:
-                                        self.airplane.fly_to_waiting_point = True
-                                        waiting_point_coordinates = order_from_server["coordinates"]
-                                    elif f"Zero point - {self.airplane.zero_point}" in order_from_server["body"]:
-                                        self.airplane.fly_to_runaway = True
-                                        self.airplane.speed = 75
-                                        runaway_coordinates = order_from_server["coordinates"]
-                            elif self.airplane.fly_to_waiting_point:
-                                distance = self.airplane.fly_to_target(waiting_point_coordinates)
-                                self.send_airplane_coordinates(client_socket)
-                                if distance < 100:
-                                    self.airplane.fly_to_waiting_point = False
-                                    self.airplane.fly_to_initial_landing_point = True
-                            elif self.airplane.fly_to_runaway:
-                                distance = self.airplane.fly_to_target(runaway_coordinates)
-                                self.send_airplane_coordinates(client_socket)
-                                if distance < 30:
-                                    self.send_message_to_server(client_socket, self.communication_utils.successfully_landing_message())
-                                    self.is_running = False
-                        except Exception as e:
-                            logger.exception(f"Error: {e}")
-                            self.is_running = False
-                except Exception as e:
-                    logger.exception(f"Error: {e}")
-                    self.is_running = False
-                finally:
-                    self.stop(client_socket)
 
     def stop(self, client_socket):
         print("CLIENT`S OUT...")
