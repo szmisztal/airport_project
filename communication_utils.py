@@ -49,3 +49,6 @@ class ClientProtocols(CommunicationUtils):
 
     def out_of_fuel_message(self):
         return self.protocol_template(message = "Out of fuel !", body = "We`re falling...")
+
+    def crash_message(self):
+        return self.protocol_template(message = "Crash !", body = "Bye, bye...")
