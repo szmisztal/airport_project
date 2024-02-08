@@ -83,7 +83,7 @@ class Airplane:
 
     def direct_to_runaway(self, client_socket):
         distance = self.count_distance_and_send_airplane_coordinates(client_socket, self.zero_point)
-        if distance < 30:
+        if distance < 50:
             self.client.send_message_to_server(client_socket, self.client.communication_utils.successfully_landing_message())
             self.client.is_running = False
 
@@ -104,6 +104,7 @@ class Airplane:
         self.x += avoidance_distance
         self.y += avoidance_distance
         self.z += 10
+        return self.x , self.y, self.z
 
     def parse_airplane_obj_to_json(self):
         return {
