@@ -32,9 +32,10 @@ class ClientHandler(threading.Thread):
         message = self.serialize_utils.serialize_to_json(data)
         self.client_socket.sendall(message)
 
-    def read_message_from_client(self, data):
-        deserialized_data = self.serialize_utils.deserialize_json(data)
-        return deserialized_data
+    def read_message_from_client(self, client_socket):
+        message_from_client_json = client_socket.recv(self.BUFFER)
+        deserialized_message = self.serialize_utils.deserialize_json(message_from_client_json)
+        return deserialized_message
 
     def welcome_message(self, id):
         welcome_message = self.communication_utils.welcome_message_to_client(id)
@@ -45,38 +46,21 @@ class ClientHandler(threading.Thread):
         coordinates = self.serialize_utils.deserialize_json(coordinates_json)["body"]
         return coordinates
 
-    def establish_all_service_points_for_airplane(self, coordinates):
+    def establish_all_service_points_coordinates_for_airplane(self, coordinates):
         quarter = server.airport.establish_airplane_quarter(coordinates)
-        points_for_airplane = {
-            "quarter": quarter,
-            "initial_landing_point": quarter,
-            "waiting_point": quarter,
-            "zero_point": quarter[0]
-        }
-        points_to_send = self.communication_utils.points_for_airplane_message(points_for_airplane)
+        points_to_send = self.communication_utils.points_for_airplane_message(quarter,
+                                                                              server.airport.initial_landing_point[quarter].point_coordinates(),
+                                                                              server.airport.waiting_point[quarter].point_coordinates(),
+                                                                              server.airport.zero_point[quarter[0]].point_coordinates())
         self.send_message_to_client(points_to_send)
 
-    def direct_airplane_to_point(self, target, coordinates):
-        direct_point = self.communication_utils.direct_airplane_message(target, coordinates)
-        return self.send_message_to_client(direct_point)
-
-    def return_point_coordinates(self, target, quarter):
-        if target == "initial landing point":
-            return server.airport.initial_landing_point[quarter].point_coordinates()
-        elif target == "waiting point":
-            return server.airport.waiting_point[quarter].point_coordinates()
-        elif target == "runaway":
-            return server.airport.zero_point[quarter[0]].point_coordinates()
-
-    def initial_correspondence_with_client(self):
+    def initial_correspondence_with_client(self, client_socket):
         self.welcome_message(self.thread_id)
         coordinates = self.response_from_client_with_coordinates()
-        self.establish_all_service_points_for_airplane(coordinates)
-        airplane_object_json = self.client_socket.recv(self.BUFFER)
-        airplane_object = self.read_message_from_client(airplane_object_json)
+        self.establish_all_service_points_coordinates_for_airplane(coordinates)
+        airplane_object = self.read_message_from_client(client_socket)
         self.airplane_object = airplane_object["body"]
-        self.direct_airplane_to_point(f"Initial landing point - {self.airplane_object[self.airplane_key]['initial_landing_point']}",
-                                      self.return_point_coordinates("initial landing point", self.airplane_object[self.airplane_key]["quarter"]))
+        self.send_message_to_client(self.communication_utils.direct_airplane_message("Initial landing point"))
 
     def check_possible_collisions(self):
         possible_collisions = server.airport.check_distance_between_airplanes(self.airplane_object, self.airplane_key, server.airport.airplanes_list)
@@ -91,21 +75,18 @@ class ClientHandler(threading.Thread):
             pass
 
     def run(self):
-        self.initial_correspondence_with_client()
+        self.initial_correspondence_with_client(self.client_socket)
         self.database_utils.add_new_connection_to_db(self.connection, self.airplane_key)
         server.airport.airplanes_list.update(self.airplane_object)
         try:
             while self.is_running:
-                response_from_client_json = self.client_socket.recv(self.BUFFER)
-                response_from_client = self.serialize_utils.deserialize_json(response_from_client_json)
-                if "We reached the target" in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
-                    air_corridor = server.airport.air_corridor[self.airplane_object[self.airplane_key]["zero_point"]]
+                response_from_client = self.read_message_from_client(self.client_socket)
+                if "We reached the target: " in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
+                    air_corridor = getattr(server.airport, "air_corridor")[self.airplane_object[self.airplane_key]["quarter"][0]]
                     if air_corridor.occupied == True:
-                        self.direct_airplane_to_point(f"Waiting point - {self.airplane_object[self.airplane_key]['waiting_point']}",
-                                                      self.return_point_coordinates("waiting point", self.airplane_object[self.airplane_key]["quarter"]))
+                        self.send_message_to_client(self.communication_utils.direct_airplane_message("Waiting point"))
                     else:
-                        self.direct_airplane_to_point(f"Zero point - {self.airplane_object[self.airplane_key]['zero_point']}",
-                                  self.return_point_coordinates("runaway", self.airplane_object[self.airplane_key]["quarter"]))
+                        self.send_message_to_client(self.communication_utils.direct_airplane_message("Zero point"))
                         air_corridor.occupied = True
                 elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
                     air_corridor.occupied = False
@@ -146,7 +127,7 @@ class Server:
         self.lock = Lock()
         self.is_running = True
         self.start_date = datetime.datetime.now()
-        self.version = "1.0.1"
+        self.version = "1.1.0"
         self.airport = Airport()
         self.communication_utils = ServerProtocols()
         self.server_connection = connection_pool.get_connection()
@@ -182,7 +163,7 @@ class Server:
                             self.lock.acquire()
                             if len(self.clients_list) < 100:
                                 thread_id = self.database_utils.get_all_airplanes_number_per_period(self.server_connection)
-                                client_handler = ClientHandler(self, client_socket, address, thread_id + 1)
+                                client_handler = ClientHandler(client_socket, address, thread_id + 1)
                                 self.clients_list.append(client_handler)
                                 client_handler.start()
                             else:
