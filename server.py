@@ -68,11 +68,13 @@ class ClientHandler(threading.Thread):
             self.send_message_to_client(self.communication_utils.avoid_collision_message())
         elif possible_collisions == None:      # airplanes crashed
             self.send_message_to_client(self.communication_utils.collision_message())
-            self.database_utils.update_connection_status(self.connection, "CRASHED BY COLLISION", self.airplane_key)
-            del server.airport.airplanes_list[self.airplane_key]
-            self.is_running = False
         else:                                  # everything` ok
             pass
+
+    def delete_airplane_from_list_and_save_status_to_db(self, status):
+        self.database_utils.update_connection_status(self.connection, status, self.airplane_key)
+        del server.airport.airplanes_list[self.airplane_key]
+        self.is_running = False
 
     def run(self):
         self.initial_correspondence_with_client(self.client_socket)
@@ -90,13 +92,11 @@ class ClientHandler(threading.Thread):
                         air_corridor.occupied = True
                 elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
                     air_corridor.occupied = False
-                    self.database_utils.update_connection_status(self.connection, "SUCCESSFULLY LANDING", self.airplane_key)
-                    del server.airport.airplanes_list[self.airplane_key]
-                    self.is_running = False
+                    self.delete_airplane_from_list_and_save_status_to_db("SUCCESSFULLY LANDING")
                 elif "Out of fuel !" in response_from_client["message"] and "We`re falling..." in response_from_client["body"]:
-                    self.database_utils.update_connection_status(self.connection, "CRASHED BY OUT OF FUEL", self.airplane_key)
-                    del server.airport.airplanes_list[self.airplane_key]
-                    self.is_running = False
+                    self.delete_airplane_from_list_and_save_status_to_db("CRASHED BY OUT OF FUEL")
+                elif "Crash !" in response_from_client["message"] and "Bye, bye..." in response_from_client["body"]:
+                    self.delete_airplane_from_list_and_save_status_to_db("CRASHED BY COLLISION")
                 else:
                     coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
                     self.airplane_object[self.airplane_key]["coordinates"] = coordinates
