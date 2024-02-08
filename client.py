@@ -70,15 +70,16 @@ class Client:
                 if key.data is None:
                     server_message_json = key.fileobj.recv(self.BUFFER)
                     server_message = self.serialize_utils.deserialize_json(server_message_json)
-                    print(server_message)
+                    print(f">>> {server_message['message']} {server_message['body']}.")
                     return server_message
 
-    def handling_additional_messages_from_server(self):
+    def handling_additional_messages_from_server(self, client_socket):
         event_message = self.check_additional_messages_from_server()
         if event_message is not None:
             if "You`re to close to another airplane !" in event_message["message"] and "Correct your flight" in event_message["body"]:
-                self.airplane.avoid_collision(50)
+                self.airplane.avoid_collision(100)
             elif "Crash !" in event_message["message"] and "R.I.P." in event_message["body"]:
+                self.send_message_to_server(client_socket, self.communication_utils.crash_message())
                 self.is_running = False
 
     def start(self):
@@ -89,7 +90,7 @@ class Client:
             try:
                 self.initial_correspondence_with_server(client_socket)
                 while self.is_running:
-                    self.handling_additional_messages_from_server()
+                    self.handling_additional_messages_from_server(client_socket)
                     self.airplane.airplane_movement_manager(client_socket)
             except Exception as e:
                 logger.exception(f"Error: {e}")
