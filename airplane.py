@@ -46,17 +46,23 @@ class Airplane:
         self.waiting_point = points.get("waiting_point_coordinates")
         self.zero_point = points.get("zero_point_coordinates")
 
-    def fly_to_target(self, target):
-        distance = euclidean_formula(self.x, self.y, self.z, target[0], target[1], target[2])
-        movement_formula(self, target[0], target[1], target[2])
-        return distance
-
     def fuel_consumption(self):
         current_time = datetime.datetime.now()
         time_difference = current_time - self.date_of_appearance
         if time_difference >= datetime.timedelta(seconds = 10800):
             return False
         return True
+
+    def fly_to_target(self, target):
+        distance = euclidean_formula(self.x, self.y, self.z, target[0], target[1], target[2])
+        movement_formula(self, target[0], target[1], target[2])
+        return distance
+
+    def avoid_collision(self, avoidance_distance):
+        self.x += avoidance_distance
+        self.y += avoidance_distance
+        self.z += 10
+        return self.x , self.y, self.z
 
     def count_distance_and_send_airplane_coordinates(self, client_socket, target_coordinates):
         distance = self.fly_to_target(target_coordinates)
@@ -99,12 +105,6 @@ class Airplane:
         else:
             self.client.send_message_to_server(client_socket, self.client.communication_utils.out_of_fuel_message())
             self.client.stop(client_socket)
-
-    def avoid_collision(self, avoidance_distance):
-        self.x += avoidance_distance
-        self.y += avoidance_distance
-        self.z += 10
-        return self.x , self.y, self.z
 
     def parse_airplane_obj_to_json(self):
         return {
