@@ -156,15 +156,14 @@ class Server:
         client_handler.start()
         return client_handler
 
+    def handle_handler_exception(self, client_handler, error):
+        logger.exception(f"Error in handler {client_handler.thread_id}: {error}")
+        client_handler.stop()
+
     def handle_full_airport_situation(self, client_socket):
         airport_full_message = self.communication_utils.airport_is_full_message()
         airport_full_message_json = self.serialize_utils.serialize_to_json(airport_full_message)
         client_socket.sendall(airport_full_message_json)
-        client_socket.close()
-
-    def handle_handler_exception(self, client_handler, client_socket, error):
-        logger.exception(f"Error in handler {client_handler.thread_id}: {error}")
-        connection_pool.release_connection(client_handler.connection)
         client_socket.close()
 
     def start(self):
@@ -188,15 +187,15 @@ class Server:
                                 client_handler = self.create_and_start_new_thread(client_socket, address)
                             else:
                                 self.handle_full_airport_situation(client_socket)
-                        except Exception as e:
-                            self.handle_handler_exception(client_handler, client_socket, e)
+                        except OSError as e:
+                            self.handle_handler_exception(client_handler, e)
                         finally:
                             self.lock.release()
                     except s.timeout:
                         pass
                     except client_socket.timeout as e:
-                        self.handle_handler_exception(client_handler, client_socket, e)
-            except Exception as e:
+                        self.handle_handler_exception(client_handler, e)
+            except OSError as e:
                 logger.exception(f"Error in server: {e}")
                 self.is_running = False
             finally:
@@ -204,9 +203,8 @@ class Server:
 
     def stop(self, server_socket):
         print("SERVER`S OUT...")
-        for client in self.clients_list:
-            connection_pool.release_connection(client.connection)
-            client.client_socket.close()
+        for handler in self.clients_list:
+            handler.stop()
         self.database_utils.update_period_end(self.server_connection)
         logger.info("Server`s out")
         server_socket.close()

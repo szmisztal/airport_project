@@ -92,7 +92,7 @@ class Client:
                 while self.is_running:
                     self.handling_additional_messages_from_server(client_socket)
                     self.airplane.airplane_movement_manager(client_socket)
-            except Exception as e:
+            except OSError as e:
                 logger.exception(f"Error: {e}")
                 self.is_running = False
             finally:
