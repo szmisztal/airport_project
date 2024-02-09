@@ -71,10 +71,34 @@ class ClientHandler(threading.Thread):
         else:                                  # everything` ok
             pass
 
+    def update_airplane_coordinates(self, response_from_client):
+        coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
+        self.airplane_object[self.airplane_key]["coordinates"] = coordinates
+        self.check_possible_collisions()
+        server.airport.airplanes_list.update(self.airplane_object)
+
     def delete_airplane_from_list_and_save_status_to_db(self, status):
         self.database_utils.update_connection_status(self.connection, status, self.airplane_key)
         del server.airport.airplanes_list[self.airplane_key]
         self.is_running = False
+
+    def handle_response_from_client(self, response_from_client):
+        air_corridor = getattr(server.airport, "air_corridor")[self.airplane_object[self.airplane_key]["quarter"][0]]
+        if "We reached the target: " in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
+            if air_corridor.occupied == True:
+                self.send_message_to_client(self.communication_utils.direct_airplane_message("Waiting point"))
+            else:
+                self.send_message_to_client(self.communication_utils.direct_airplane_message("Zero point"))
+                air_corridor.occupied = True
+        elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
+            air_corridor.occupied = False
+            self.delete_airplane_from_list_and_save_status_to_db("SUCCESSFULLY LANDING")
+        elif "Out of fuel !" in response_from_client["message"] and "We`re falling..." in response_from_client["body"]:
+            self.delete_airplane_from_list_and_save_status_to_db("CRASHED BY OUT OF FUEL")
+        elif "Crash !" in response_from_client["message"] and "Bye, bye..." in response_from_client["body"]:
+            self.delete_airplane_from_list_and_save_status_to_db("CRASHED BY COLLISION")
+        else:
+            self.update_airplane_coordinates(response_from_client)
 
     def run(self):
         self.initial_correspondence_with_client(self.client_socket)
@@ -83,25 +107,7 @@ class ClientHandler(threading.Thread):
         try:
             while self.is_running:
                 response_from_client = self.read_message_from_client(self.client_socket)
-                if "We reached the target: " in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
-                    air_corridor = getattr(server.airport, "air_corridor")[self.airplane_object[self.airplane_key]["quarter"][0]]
-                    if air_corridor.occupied == True:
-                        self.send_message_to_client(self.communication_utils.direct_airplane_message("Waiting point"))
-                    else:
-                        self.send_message_to_client(self.communication_utils.direct_airplane_message("Zero point"))
-                        air_corridor.occupied = True
-                elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
-                    air_corridor.occupied = False
-                    self.delete_airplane_from_list_and_save_status_to_db("SUCCESSFULLY LANDING")
-                elif "Out of fuel !" in response_from_client["message"] and "We`re falling..." in response_from_client["body"]:
-                    self.delete_airplane_from_list_and_save_status_to_db("CRASHED BY OUT OF FUEL")
-                elif "Crash !" in response_from_client["message"] and "Bye, bye..." in response_from_client["body"]:
-                    self.delete_airplane_from_list_and_save_status_to_db("CRASHED BY COLLISION")
-                else:
-                    coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
-                    self.airplane_object[self.airplane_key]["coordinates"] = coordinates
-                    self.check_possible_collisions()
-                    server.airport.airplanes_list.update(self.airplane_object)
+                self.handle_response_from_client(response_from_client)
         except Exception as e:
             logger.exception(f"Error in thread {self.thread_id}: {e}")
             self.is_running = False
@@ -137,54 +143,59 @@ class Server:
         current_time = datetime.datetime.now()
         time_difference = current_time - self.start_date
         if time_difference >= datetime.timedelta(seconds = 3600):
-            return False
-        else:
-            return True
+            self.is_running = False
+
+    def db_service_when_server_starts(self):
+        self.database_utils.create_db_tables(self.server_connection)
+        self.database_utils.add_new_server_period(self.server_connection)
+
+    def create_and_start_new_thread(self, client_socket, address):
+        thread_id = self.database_utils.get_all_airplanes_number_per_period(self.server_connection) + 1
+        client_handler = ClientHandler(client_socket, address, thread_id)
+        self.clients_list.append(client_handler)
+        client_handler.start()
+        return client_handler
+
+    def handle_full_airport_situation(self, client_socket):
+        airport_full_message = self.communication_utils.airport_is_full_message()
+        airport_full_message_json = self.serialize_utils.serialize_to_json(airport_full_message)
+        client_socket.sendall(airport_full_message_json)
+        client_socket.close()
+
+    def handle_handler_exception(self, client_handler, client_socket, error):
+        logger.exception(f"Error in handler {client_handler.thread_id}: {error}")
+        connection_pool.release_connection(client_handler.connection)
+        client_socket.close()
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             print("SERVER`S UP...")
-            self.database_utils.create_db_tables(self.server_connection)
-            self.database_utils.add_new_server_period(self.server_connection)
+            self.db_service_when_server_starts()
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
             try:
                 while self.is_running:
                     try:
+                        self.check_server_lifetime()
                         server_socket.settimeout(0.01)
                         radar.draw()
-                        server_lifetime = self.check_server_lifetime()
-                        if not server_lifetime:
-                            self.is_running = False
                         client_socket, address = server_socket.accept()
                         logger.info(f"Connection from {address}")
                         client_socket.settimeout(5)
                         try:
                             self.lock.acquire()
                             if len(self.clients_list) < 100:
-                                thread_id = self.database_utils.get_all_airplanes_number_per_period(self.server_connection)
-                                client_handler = ClientHandler(client_socket, address, thread_id + 1)
-                                self.clients_list.append(client_handler)
-                                client_handler.start()
+                                client_handler = self.create_and_start_new_thread(client_socket, address)
                             else:
-                                airport_full_message = self.communication_utils.airport_is_full_message()
-                                airport_full_message_json = self.serialize_utils.serialize_to_json(airport_full_message)
-                                client_socket.sendall(airport_full_message_json)
-                                client_socket.close()
+                                self.handle_full_airport_situation(client_socket)
                         except Exception as e:
-                            logger.exception(f"Error in handler {thread_id}: {e}")
-                            connection_pool.release_connection(client_handler.connection)
-                            client_socket.close()
-                            continue
+                            self.handle_handler_exception(client_handler, client_socket, e)
                         finally:
                             self.lock.release()
                     except s.timeout:
                         pass
-                    except client_socket.timeout:
-                        logger.exception(f"Client socket timeout in client {thread_id}")
-                        connection_pool.release_connection(client_handler.connection)
-                        client_socket.close()
-                        continue
+                    except client_socket.timeout as e:
+                        self.handle_handler_exception(client_handler, client_socket, e)
             except Exception as e:
                 logger.exception(f"Error in server: {e}")
                 self.is_running = False
