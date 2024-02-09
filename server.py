@@ -166,6 +166,31 @@ class Server:
         client_socket.sendall(airport_full_message_json)
         client_socket.close()
 
+    def handler_manager(self, client_socket, address):
+        try:
+            with self.lock:
+                if len(self.clients_list) < 100:
+                    client_handler = self.create_and_start_new_thread(client_socket, address)
+                    return client_handler
+                else:
+                    self.handle_full_airport_situation(client_socket)
+        except OSError as e:
+            self.handle_handler_exception(client_handler, e)
+
+    def server_work_manager(self, server_socket):
+        try:
+            self.check_server_lifetime()
+            server_socket.settimeout(0.01)
+            radar.draw()
+            client_socket, address = server_socket.accept()
+            logger.info(f"Connection from {address}")
+            client_socket.settimeout(5)
+            client_handler = self.handler_manager(client_socket, address)
+        except s.timeout:
+            pass
+        except client_socket.timeout as e:
+            self.handle_handler_exception(client_handler, e)
+
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             print("SERVER`S UP...")
@@ -174,27 +199,7 @@ class Server:
             server_socket.listen()
             try:
                 while self.is_running:
-                    try:
-                        self.check_server_lifetime()
-                        server_socket.settimeout(0.01)
-                        radar.draw()
-                        client_socket, address = server_socket.accept()
-                        logger.info(f"Connection from {address}")
-                        client_socket.settimeout(5)
-                        try:
-                            self.lock.acquire()
-                            if len(self.clients_list) < 100:
-                                client_handler = self.create_and_start_new_thread(client_socket, address)
-                            else:
-                                self.handle_full_airport_situation(client_socket)
-                        except OSError as e:
-                            self.handle_handler_exception(client_handler, e)
-                        finally:
-                            self.lock.release()
-                    except s.timeout:
-                        pass
-                    except client_socket.timeout as e:
-                        self.handle_handler_exception(client_handler, e)
+                    self.server_work_manager(server_socket)
             except OSError as e:
                 logger.exception(f"Error in server: {e}")
                 self.is_running = False
