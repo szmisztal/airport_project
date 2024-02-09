@@ -15,8 +15,8 @@ class Connection:
 
     def create_connection(self):
         try:
-            connection = sqlite3.connect(self.db_file, check_same_thread = False)
-            return connection
+            with sqlite3.connect(self.db_file, check_same_thread = False) as connection:
+                return connection
         except Error as e:
             print(f"Error: {e}")
             return None
@@ -39,8 +39,7 @@ class ConnectionPool:
             self.connections_list.append(connection)
 
     def get_connection(self):
-        self.lock.acquire()
-        try:
+        with self.lock:
             for connection in self.connections_list:
                 if connection.in_use == False:
                     connection.in_use = True
@@ -55,30 +54,22 @@ class ConnectionPool:
                 return new_connection
             elif len(self.connections_list) + len(self.connections_in_use_list) >= self.max_number_of_connections:
                 return False
-        finally:
-            self.lock.release()
 
     def release_connection(self, connection):
-        self.lock.acquire()
-        try:
+        with self.lock:
             if connection in self.connections_in_use_list:
                 connection.in_use = False
                 self.connections_list.append(connection)
                 self.connections_in_use_list.remove(connection)
-        finally:
-            self.lock.release()
 
     def destroy_unused_connections(self):
-        self.lock.acquire()
-        try:
+        with self.lock:
             for connection in self.connections_list:
                 if len(self.connections_list) > 11:
                     connection.close()
                     self.connections_list.remove(connection)
                     if len(self.connections_list) <= 10:
                         break
-        finally:
-            self.lock.release()
 
     def keep_connections_at_the_starting_level(self):
         if len(self.connections_list) < self.min_number_of_connections:
