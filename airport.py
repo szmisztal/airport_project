@@ -3,7 +3,22 @@ from math_patterns import euclidean_formula
 
 
 class Airport:
+    """
+    Represents an airport in the simulation.
+
+    Attributes:
+    - airport_area: CustomSector object representing the area of the airport.
+    - initial_landing_point: Dictionary containing initial landing points for airplanes in different directions.
+    - waiting_point: Dictionary containing waiting points for airplanes in different directions.
+    - zero_point: Dictionary containing zero points for airplanes in different directions.
+    - air_corridor: Dictionary containing air corridors for airplanes in different directions.
+    - airplanes_list: Dictionary containing the list of airplanes currently at the airport.
+    """
+
     def __init__(self):
+        """
+        Initializes an Airport object with default attributes.
+        """
         self.airport_area = CustomSector(-5000, 5000, -5000, 5000, 0, 5000)
         self.initial_landing_point = {
                     "NW": CustomPoint(-2000, 450, 2000),
@@ -29,6 +44,15 @@ class Airport:
 
     @staticmethod
     def establish_airplane_quarter(coordinates):
+        """
+        Determines the quarter in which the airplane is located based on its coordinates.
+
+        Parameters:
+        - coordinates: Dictionary containing the x, y, and z coordinates of the airplane.
+
+        Returns:
+        - A string representing the quarter in which the airplane is located.
+        """
         if coordinates["x"] in range(-5000, 0) and coordinates["y"] in range(0, 5001):
              return "NW"
         elif coordinates["x"] in range(0, 5001) and coordinates["y"] in range(0, 5001):
@@ -39,6 +63,19 @@ class Airport:
             return "SE"
 
     def check_distance_between_airplanes(self, airplane_object, airplane_id, airplanes_list):
+        """
+        Checks the distance between the given airplane and other airplanes in the list to prevent collisions.
+
+        Parameters:
+        - airplane_object: Dictionary containing details of the airplane.
+        - airplane_id: The ID of the airplane to check.
+        - airplanes_list: Dictionary containing details of all airplanes.
+
+        Returns:
+        - False if the airplane needs to avoid collision.
+        - None if the airplanes have crashed.
+        - True if everything is okay.
+        """
         if len(airplanes_list) > 1:
             airplane_x = airplane_object[airplane_id]["coordinates"][0]
             airplane_y = airplane_object[airplane_id]["coordinates"][1]
@@ -51,14 +88,29 @@ class Airport:
                     distance = euclidean_formula(airplane_x, airplane_y, airplane_z,
                                                  other_airplane_x, other_airplane_y, other_airplane_z)
                     if 300 < distance < 400:
-                        return False        # airplane has to avoid collision
+                        return False
                     elif distance < 50:
-                        return None        # airplanes crashed
-        return True                        # everything`s ok
+                        return None
+        return True
 
 
 class Radar:
+    """
+    Represents a radar system for tracking airplanes within an airport.
+
+    Attributes:
+    - airport: The airport instance associated with the radar.
+    - fig: The figure object for plotting.
+    - ax: The axes object for 3D visualization.
+    """
+
     def __init__(self, airport):
+        """
+        Initializes the Radar object with the given airport.
+
+        Parameters:
+        - airport: The airport instance associated with the radar.
+        """
         self.airport = airport
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111, projection = "3d")
@@ -71,6 +123,9 @@ class Radar:
         self.ax.legend(loc = "upper left", bbox_to_anchor = (0.8, 0.8))
 
     def draw(self):
+        """
+        Draws the radar plot with airport landmarks and airplane positions.
+        """
         self.ax.clear()
         points = {
             "Zero Point N": self.airport.zero_point["N"],
@@ -91,12 +146,29 @@ class Radar:
 
 
 class AirCorridor:
+    """
+    Represents an aerial corridor in a particular direction.
+
+    Attributes:
+    - direction (str): The direction of the corridor.
+    - occupied (bool): Indicates whether the corridor is currently occupied by an airplane or not.
+    """
+
     def __init__(self, direction):
         self.direction = direction
         self.occupied = False
 
 
 class CustomSector:
+    """
+    Defines a custom sector in the airspace defined by its boundaries.
+
+    Attributes:
+    - x1, x2 (int): Boundaries along the x-axis.
+    - y1, y2 (int): Boundaries along the y-axis.
+    - z1, z2 (int): Boundaries along the z-axis.
+    """
+
     def __init__(self, x1, x2, y1, y2, z1, z2):
         self.x1 = x1
         self.x2 = x2
@@ -107,11 +179,23 @@ class CustomSector:
 
 
 class CustomPoint:
+    """
+    Represents a point in the 3D space.
+
+    Attributes:
+    - x (int): The x-coordinate of the point.
+    - y (int): The y-coordinate of the point.
+    - z (int): The z-coordinate of the point.
+    """
+
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
         self.z = z
 
     def point_coordinates(self):
+        """
+        Returns the coordinates of the point as a tuple (x, y, z).
+        """
         return (self.x, self.y, self.z)
 
