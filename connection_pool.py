@@ -120,8 +120,8 @@ class ConnectionPool:
         """Destroys unused connections in excess of the minimum number."""
         with self.lock:
             for connection in self.connections_list:
-                if len(self.connections_list) > 11:
-                    connection.close()
+                if len(self.connections_list) >= 11:
+                    connection.connection.close()
                     self.connections_list.remove(connection)
                     if len(self.connections_list) <= 10:
                         break
