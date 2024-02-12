@@ -83,9 +83,9 @@ class Airplane:
                   waiting point, and zero point coordinates.
         """
         self.quarter = points["body"]
-        self.initial_landing_point = points.get("init_point_coordinates")
-        self.waiting_point = points.get("waiting_point_coordinates")
-        self.zero_point = points.get("zero_point_coordinates")
+        self.initial_landing_point = points["init_point_coordinates"]
+        self.waiting_point = points["waiting_point_coordinates"]
+        self.zero_point = points["zero_point_coordinates"]
 
     def fuel_consumption(self):
         """
