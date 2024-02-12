@@ -12,6 +12,7 @@ def airplane_object():
     airplane_object = {"Airplane_1": {"coordinates": [2000, 3000, 1500]}}
     return airplane_object
 
+
 def test_airport_init(init_airport_obj):
     airport = init_airport_obj
     assert airport.airport_area.x1 == -5000
@@ -35,6 +36,7 @@ def test_airport_init(init_airport_obj):
     assert airport.air_corridor["S"].direction == "S"
     assert airport.air_corridor["S"].occupied == False
     assert len(airport.airplanes_list) == 0
+
 
 @pytest.mark.parametrize("coordinates, result", [
     ({"x": -4400, "y": 3500}, "NW"),
