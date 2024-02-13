@@ -82,25 +82,18 @@ class Client:
             self.stop(client_socket)
         else:
             self.airplane.id = server_response["id"]
-            coordinates = self.communication_utils.airplane_coordinates_message(
-                {"x": self.airplane.x,
-                 "y": self.airplane.y,
-                 "z": self.airplane.z}
-            )
-            self.send_message_to_server(client_socket, coordinates)
-            points = self.read_message_from_server(client_socket)
-            self.airplane.set_points(points)
-            airplane_obj = self.communication_utils.message_with_airplane_object(self.airplane.parse_airplane_obj_to_json())
-            self.send_message_to_server(client_socket, airplane_obj)
+            self.send_airplane_coordinates(client_socket, 0)
+            self.establish_initial_airplane_points(client_socket)
+            self.send_airplane_obj_to_server(client_socket)
             self.read_message_from_server(client_socket)
             self.airplane.fly_to_initial_landing_point = True
 
-    def send_airplane_coordinates(self, client_socket):
+    def send_airplane_coordinates(self, client_socket, sleep_time_in_sec):
         """
         Sends the current coordinates of the airplane to the server.
 
         Parameters:
-        - client_socket (socket): The client socket used for communication with the server.
+        - client_socket (socket): The client socket.
         """
         coordinates = self.communication_utils.airplane_coordinates_message(
             {"x": self.airplane.x,
@@ -108,7 +101,27 @@ class Client:
              "z": self.airplane.z}
         )
         self.send_message_to_server(client_socket, coordinates)
-        time.sleep(1)
+        time.sleep(sleep_time_in_sec)
+
+    def establish_initial_airplane_points(self, client_socket):
+        """
+        Establishes the initial points of the airplane by reading data from the server.
+
+        Parameters:
+        - client_socket (socket): The client socket.
+        """
+        points = self.read_message_from_server(client_socket)
+        self.airplane.set_points(points)
+
+    def send_airplane_obj_to_server(self, client_socket):
+        """
+        Sends the airplane object to the server after converting it to a JSON format.
+
+        Parameters:
+        - client_socket (socket): The client socket.
+        """
+        airplane_obj = self.communication_utils.message_with_airplane_object(self.airplane.parse_airplane_obj_to_json())
+        self.send_message_to_server(client_socket, airplane_obj)
 
     def check_additional_messages_from_server(self):
         """
