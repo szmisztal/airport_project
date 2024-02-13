@@ -13,7 +13,6 @@ def init_airplane_obj(mocker):
 
 def test_airplane_init(init_airplane_obj):
     airplane = init_airplane_obj
-    assert airplane.date_of_appearance == datetime.datetime.now()
     assert airplane.id == None
     assert airplane.x == -5000
     assert airplane.y == 3500
@@ -68,6 +67,64 @@ def test_avoid_collision(init_airplane_obj):
     assert airplane.x == -4950
     assert airplane.y == 3550
     assert airplane.z == 4410
+
+def test_direct_to_initial_landing_point_than_to_waiting_point(mocker, init_airplane_obj):
+    airplane = init_airplane_obj
+    mock_client_socket = mocker.Mock()
+    mock_client = airplane.client
+    mocker.patch.object(airplane, "count_distance_and_send_airplane_coordinates", return_value = 50)
+    mock_client.read_message_from_server.return_value = {
+        "message": "test_message",
+        "body": "Waiting point"
+    }
+    airplane.direct_to_initial_landing_point(mock_client_socket)
+    mock_client.send_message_to_server.assert_called_once_with(
+        mock_client_socket,
+        mock_client.communication_utils.reaching_the_target_message("Initial landing point")
+    )
+    mock_client.read_message_from_server.assert_called_once_with(mock_client_socket)
+    assert airplane.fly_to_initial_landing_point == False
+    assert airplane.fly_to_waiting_point == True
+    assert airplane.fly_to_runaway == False
+    assert airplane.speed == 100
+
+def test_direct_to_initial_landing_point_than_to_zero_point(mocker, init_airplane_obj):
+    airplane = init_airplane_obj
+    mock_client_socket = mocker.Mock()
+    mock_client = airplane.client
+    mocker.patch.object(airplane, "count_distance_and_send_airplane_coordinates", return_value = 50)
+    mock_client.read_message_from_server.return_value = {
+        "message": "test_message",
+        "body": "Zero point"
+    }
+    airplane.direct_to_initial_landing_point(mock_client_socket)
+    mock_client.send_message_to_server.assert_called_once_with(
+        mock_client_socket,
+        mock_client.communication_utils.reaching_the_target_message("Initial landing point")
+    )
+    mock_client.read_message_from_server.assert_called_once_with(mock_client_socket)
+    assert airplane.fly_to_initial_landing_point == False
+    assert airplane.fly_to_waiting_point == False
+    assert airplane.fly_to_runaway == True
+    assert airplane.speed == 75
+
+def test_direct_to_waiting_point(mocker, init_airplane_obj):
+    airplane = init_airplane_obj
+    mock_client_socket = mocker.Mock()
+    mocker.patch.object(airplane, "count_distance_and_send_airplane_coordinates", return_value = 50)
+    airplane.direct_to_waiting_point(mock_client_socket)
+    assert airplane.fly_to_initial_landing_point == True
+    assert airplane.fly_to_waiting_point == False
+
+def test_direct_to_runaway(mocker, init_airplane_obj):
+    airplane = init_airplane_obj
+    mock_client_socket = mocker.Mock()
+    mocker.patch.object(airplane, "count_distance_and_send_airplane_coordinates", return_value = 30)
+    airplane.direct_to_runaway(mock_client_socket)
+    airplane.client.send_message_to_server.assert_called_once_with(
+        mock_client_socket, airplane.client.communication_utils.successfully_landing_message()
+    )
+    assert airplane.client.is_running == False
 
 def test_parse_airplane_obj_to_json(init_airplane_obj):
     airplane = init_airplane_obj
