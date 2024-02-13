@@ -68,34 +68,20 @@ def test_avoid_collision(init_airplane_obj):
     assert airplane.y == 3550
     assert airplane.z == 4410
 
-def test_direct_to_initial_landing_point_than_to_waiting_point(mocker, init_airplane_obj):
-    airplane = init_airplane_obj
-    mock_client_socket = mocker.Mock()
-    mock_client = airplane.client
-    mocker.patch.object(airplane, "count_distance_and_send_airplane_coordinates", return_value = 50)
-    mock_client.read_message_from_server.return_value = {
-        "message": "test_message",
-        "body": "Waiting point"
-    }
-    airplane.direct_to_initial_landing_point(mock_client_socket)
-    mock_client.send_message_to_server.assert_called_once_with(
-        mock_client_socket,
-        mock_client.communication_utils.reaching_the_target_message("Initial landing point")
-    )
-    mock_client.read_message_from_server.assert_called_once_with(mock_client_socket)
-    assert airplane.fly_to_initial_landing_point == False
-    assert airplane.fly_to_waiting_point == True
-    assert airplane.fly_to_runaway == False
-    assert airplane.speed == 100
 
-def test_direct_to_initial_landing_point_than_to_zero_point(mocker, init_airplane_obj):
+@pytest.mark.parametrize("body, fly_to_waiting_point_flag, fly_to_zero_point_flag, airplane_speed", [
+    ("Waiting point", True, False, 100),
+    ("Zero point", False, True, 75)
+])
+def test_direct_to_initial_landing_point(mocker, init_airplane_obj, body, fly_to_waiting_point_flag,
+                                                            fly_to_zero_point_flag, airplane_speed):
     airplane = init_airplane_obj
     mock_client_socket = mocker.Mock()
     mock_client = airplane.client
     mocker.patch.object(airplane, "count_distance_and_send_airplane_coordinates", return_value = 50)
     mock_client.read_message_from_server.return_value = {
         "message": "test_message",
-        "body": "Zero point"
+        "body": body
     }
     airplane.direct_to_initial_landing_point(mock_client_socket)
     mock_client.send_message_to_server.assert_called_once_with(
@@ -104,9 +90,9 @@ def test_direct_to_initial_landing_point_than_to_zero_point(mocker, init_airplan
     )
     mock_client.read_message_from_server.assert_called_once_with(mock_client_socket)
     assert airplane.fly_to_initial_landing_point == False
-    assert airplane.fly_to_waiting_point == False
-    assert airplane.fly_to_runaway == True
-    assert airplane.speed == 75
+    assert airplane.fly_to_waiting_point == fly_to_waiting_point_flag
+    assert airplane.fly_to_runaway == fly_to_zero_point_flag
+    assert airplane.speed == airplane_speed
 
 def test_direct_to_waiting_point(mocker, init_airplane_obj):
     airplane = init_airplane_obj
