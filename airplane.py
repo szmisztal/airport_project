@@ -143,7 +143,7 @@ class Airplane:
         - float: The distance between the current position of the airplane and the target coordinates.
         """
         distance = self.fly_to_target(target_coordinates)
-        self.client.send_airplane_coordinates(client_socket)
+        self.client.send_airplane_coordinates(client_socket, 1)
         return distance
 
     def direct_to_initial_landing_point(self, client_socket):
