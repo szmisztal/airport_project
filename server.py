@@ -18,6 +18,7 @@ class ClientHandler(threading.Thread):
     Handles communication with a single client connected to the server.
 
     Attributes:
+        server: server whose manage this handler.
         client_socket (socket): The socket object representing the client connection.
         address (tuple): The address of the client (IP address, port number).
         thread_id (int): The unique identifier of the thread handling this client connection.
@@ -31,16 +32,19 @@ class ClientHandler(threading.Thread):
         airplane_key (str): Key used to identify the airplane object in the dictionary.
     """
 
-    def __init__(self, client_socket, address, thread_id):
+    def __init__(self, server, client_socket, address, thread_id, connection_pool):
         """
         Initializes a ClientHandler instance.
 
         Parameters:
+            server: server whose manage client handlers.
             client_socket (socket): The socket object representing the client connection.
             address (tuple): The address of the client (IP address, port number).
             thread_id (int): The unique identifier of the thread handling this client connection.
+            connection_pool: Connection pool object initialized before start the server.
         """
         super().__init__()
+        self.server = server
         self.client_socket = client_socket
         self.address = address
         self.thread_id = thread_id
@@ -105,11 +109,11 @@ class ClientHandler(threading.Thread):
         Parameters:
             coordinates (dict): The coordinates of the airplane.
         """
-        quarter = server.airport.establish_airplane_quarter(coordinates)
+        quarter = self.server.airport.establish_airplane_quarter(coordinates)
         points_to_send = self.communication_utils.points_for_airplane_message(quarter,
-                                                                              server.airport.initial_landing_point[quarter].point_coordinates(),
-                                                                              server.airport.waiting_point[quarter].point_coordinates(),
-                                                                              server.airport.zero_point[quarter[0]].point_coordinates())
+                                                                              self.server.airport.initial_landing_point[quarter].point_coordinates(),
+                                                                              self.server.airport.waiting_point[quarter].point_coordinates(),
+                                                                              self.server.airport.zero_point[quarter[0]].point_coordinates())
         self.send_message_to_client(points_to_send)
 
     def initial_correspondence_with_client(self, client_socket):
@@ -133,7 +137,7 @@ class ClientHandler(threading.Thread):
         Checks for possible collisions between airplanes.
         Sends messages accordingly if there's a collision or if avoidance is necessary.
         """
-        possible_collisions = server.airport.check_distance_between_airplanes(self.airplane_object, self.airplane_key, server.airport.airplanes_list)
+        possible_collisions = self.server.airport.check_distance_between_airplanes(self.airplane_object, self.airplane_key, self.server.airport.airplanes_list)
         if possible_collisions == False:
             self.send_message_to_client(self.communication_utils.avoid_collision_message())
         elif possible_collisions == None:
@@ -151,7 +155,7 @@ class ClientHandler(threading.Thread):
         coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
         self.airplane_object[self.airplane_key]["coordinates"] = coordinates
         self.check_possible_collisions()
-        server.airport.airplanes_list.update(self.airplane_object)
+        self.server.airport.airplanes_list.update(self.airplane_object)
 
     def delete_airplane_from_list_and_save_status_to_db(self, status):
         """
@@ -161,7 +165,7 @@ class ClientHandler(threading.Thread):
             status (str): The status of the airplane.
         """
         self.database_utils.update_connection_status(self.connection, status, self.airplane_key)
-        del server.airport.airplanes_list[self.airplane_key]
+        del self.server.airport.airplanes_list[self.airplane_key]
         self.is_running = False
 
     def handle_response_from_client(self, response_from_client):
@@ -173,7 +177,7 @@ class ClientHandler(threading.Thread):
         Parameters:
             response_from_client (dict): The response received from the client.
         """
-        air_corridor = getattr(server.airport, "air_corridor")[self.airplane_object[self.airplane_key]["quarter"][0]]
+        air_corridor = getattr(self.server.airport, "air_corridor")[self.airplane_object[self.airplane_key]["quarter"][0]]
         if "We reached the target: " in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
             if air_corridor.occupied == True:
                 self.send_message_to_client(self.communication_utils.direct_airplane_message("Waiting point"))
@@ -197,7 +201,7 @@ class ClientHandler(threading.Thread):
         """
         self.initial_correspondence_with_client(self.client_socket)
         self.database_utils.add_new_connection_to_db(self.connection, self.airplane_key)
-        server.airport.airplanes_list.update(self.airplane_object)
+        self.server.airport.airplanes_list.update(self.airplane_object)
         try:
             while self.is_running:
                 response_from_client = self.read_message_from_client(self.client_socket)
@@ -215,7 +219,7 @@ class ClientHandler(threading.Thread):
         """
         print(f"CLIENT: {self.thread_id} IS OUT...")
         connection_pool.release_connection(self.connection)
-        server.clients_list.remove(self)
+        self.server.clients_list.remove(self)
         logger.info(f"Client {self.thread_id} out")
         self.client_socket.close()
 
@@ -241,9 +245,12 @@ class Server:
         clients_list (list): A list of connected clients.
     """
 
-    def __init__(self):
+    def __init__(self, connection_pool):
         """
         Initializes the Server class with default values and objects.
+
+        Parameters:
+            - connection_pool: Connection pool object initialized before start the server.
         """
         self.HOST = HOST
         self.PORT = PORT
@@ -266,7 +273,7 @@ class Server:
         """
         current_time = datetime.datetime.now()
         time_difference = current_time - self.start_date
-        if time_difference >= datetime.timedelta(seconds = 3600):
+        if time_difference >= datetime.timedelta(hours = 5):
             self.is_running = False
 
     def db_service_when_server_starts(self):
@@ -281,7 +288,7 @@ class Server:
         """
         Creates and starts a new thread to handle a client connection.
 
-        Args:
+        Parameters:
             client_socket (socket): The client socket object.
             address (tuple): The client address.
 
@@ -289,7 +296,7 @@ class Server:
             ClientHandler: The handler for the client connection.
         """
         thread_id = self.database_utils.get_all_airplanes_number_per_period(self.server_connection) + 1
-        client_handler = ClientHandler(client_socket, address, thread_id)
+        client_handler = ClientHandler(self, client_socket, address, thread_id, connection_pool)
         self.clients_list.append(client_handler)
         client_handler.start()
         return client_handler
@@ -298,7 +305,7 @@ class Server:
         """
         Handles exceptions raised in the client handler thread.
 
-        Args:
+        Parameters:
             client_handler (ClientHandler): The client handler thread object.
             error (Exception): The exception raised.
         """
@@ -395,6 +402,6 @@ class Server:
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     connection_pool = ConnectionPool(10, 100)
-    server = Server()
+    server = Server(connection_pool)
     radar = Radar(server.airport)
     server.start()
