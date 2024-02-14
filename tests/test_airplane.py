@@ -1,6 +1,5 @@
 import pytest
 import datetime
-from unittest.mock import patch
 from airplane import Airplane
 
 
@@ -50,16 +49,16 @@ def test_set_points(init_airplane_obj):
     assert airplane.waiting_point == (-3500, 1000, 2350)
     assert airplane.zero_point == (0, 450, 0)
 
-def test_fuel_consumption(init_airplane_obj):
+def test_fuel_consumption(init_airplane_obj, mocker):
     airplane = init_airplane_obj
     date_of_appearance_for_test = datetime.datetime.now() - datetime.timedelta(hours = 4)
     airplane.date_of_appearance = date_of_appearance_for_test
-    with patch('datetime.datetime') as mock_datetime:
-        mock_datetime.now.return_value = date_of_appearance_for_test + datetime.timedelta(hours = 3, seconds = 1)
-        assert airplane.fuel_consumption() == False
-        new_date_of_appearance = datetime.datetime.now() - datetime.timedelta(hours = 2)
-        airplane.date_of_appearance = new_date_of_appearance
-        assert airplane.fuel_consumption() == True
+    mock_datetime = mocker.patch.object(datetime, "datetime")
+    mock_datetime.now.return_value = date_of_appearance_for_test + datetime.timedelta(hours = 3, seconds = 1)
+    assert not airplane.fuel_consumption()
+    new_date_of_appearance = datetime.datetime.now() - datetime.timedelta(hours = 2)
+    airplane.date_of_appearance = new_date_of_appearance
+    assert airplane.fuel_consumption()
 
 def test_avoid_collision(init_airplane_obj):
     airplane = init_airplane_obj
