@@ -1,6 +1,7 @@
 import pytest
 from connection_pool import Connection, ConnectionPool
 
+
 @pytest.fixture
 def init_connection_obj(mocker):
     db_file = mocker.Mock()
