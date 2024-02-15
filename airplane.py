@@ -1,6 +1,6 @@
 import datetime
 import random
-from math_patterns import euclidean_formula, movement_formula
+from math_calculation import euclidean_formula, movement_formula
 
 
 class Airplane:

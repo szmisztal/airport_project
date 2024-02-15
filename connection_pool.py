@@ -2,7 +2,7 @@ from threading import Lock
 import schedule
 import sqlite3
 from sqlite3 import Error
-from data_utils import SerializeUtils
+from database_and_serialization_managment import SerializeUtils
 from variables import db_file
 
 

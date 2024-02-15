@@ -1,5 +1,5 @@
 import pytest
-from data_utils import SerializeUtils, DatabaseUtils
+from database_and_serialization_managment import SerializeUtils, DatabaseUtils
 
 
 @pytest.fixture

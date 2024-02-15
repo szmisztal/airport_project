@@ -3,9 +3,9 @@ import socket as s
 import time
 import logging
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
-from data_utils import SerializeUtils
+from database_and_serialization_managment import SerializeUtils
 from airplane import Airplane
-from communication_utils import ClientProtocols
+from server_client_messages import ClientProtocols
 
 
 logging.basicConfig(filename = "clients_logs.log", level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")

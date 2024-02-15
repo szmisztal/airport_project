@@ -4,8 +4,8 @@ import socket as s
 import threading
 from threading import Lock
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
-from data_utils import SerializeUtils, DatabaseUtils
-from communication_utils import ServerProtocols, HandlerProtocols
+from database_and_serialization_managment import SerializeUtils, DatabaseUtils
+from server_client_messages import ServerProtocols, HandlerProtocols
 from airport import Airport, Radar
 from connection_pool import ConnectionPool
 
