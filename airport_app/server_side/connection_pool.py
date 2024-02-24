@@ -2,7 +2,7 @@ from threading import Lock
 import schedule
 import sqlite3
 from sqlite3 import Error
-from database_and_serialization_managment import SerializeUtils
+from airport_app.server_side.database_and_serialization_managment import SerializeUtils
 from config_variables import db_file
 
 

@@ -25,7 +25,7 @@ class CommunicationUtils:
 
 class ServerProtocols(CommunicationUtils):
     """
-    A class representing server-specific communication protocols.
+    A class representing server_side-specific communication protocols.
 
     Inherits:
     - CommunicationUtils: Base class providing utility method for communication protocols.
@@ -36,7 +36,7 @@ class ServerProtocols(CommunicationUtils):
         Generates a message indicating that the airport is full.
 
         Returns:
-        dict: A communication protocol template indicating that the airport is full and the client needs to fly to another location.
+        dict: A communication protocol template indicating that the airport is full and the client_side needs to fly to another location.
         """
         return self.protocol_template(message = "Airport`s full: ", body = "You have to fly to another...")
 
@@ -51,13 +51,13 @@ class HandlerProtocols(CommunicationUtils):
 
     def welcome_message_to_client(self, id):
         """
-        Generates a welcome message to the client.
+        Generates a welcome message to the client_side.
 
         Parameters:
-        - id (str): The unique identifier of the client.
+        - id (str): The unique identifier of the client_side.
 
         Returns:
-        dict: A communication protocol template welcoming the client and requesting their coordinates.
+        dict: A communication protocol template welcoming the client_side and requesting their coordinates.
         """
         return self.protocol_template(message = "Welcome to our airport !", body = "Submit your coordinates", id = id)
 

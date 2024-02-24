@@ -1,5 +1,5 @@
 import pytest
-from server.connection_pool import Connection, ConnectionPool
+from airport_app.server_side.connection_pool import Connection, ConnectionPool
 
 
 @pytest.fixture

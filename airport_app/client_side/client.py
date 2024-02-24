@@ -1,14 +1,11 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import selectors
 import socket as s
 import time
 import logging
 from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
-from server.database_and_serialization_managment import SerializeUtils
-from airplane import Airplane
-from client_messages import ClientProtocols
+from airport_app.server_side.database_and_serialization_managment import SerializeUtils
+from airport_app.client_side.airplane import Airplane
+from airport_app.client_side.client_messages import ClientProtocols
 
 
 logging.basicConfig(filename ="clients_logs.log", level = logging.INFO, format ="%(asctime)s - %(levelname)s - %(message)s")
@@ -16,7 +13,7 @@ logging.basicConfig(filename ="clients_logs.log", level = logging.INFO, format =
 
 class Client:
     """
-    Represents a client for the airport simulation.
+    Represents a client_side for the airport simulation.
 
     Attributes:
     - HOST (str): The host address to connect to.
@@ -26,9 +23,9 @@ class Client:
     - BUFFER (int): The size of the buffer for receiving messages.
     - encode_format (str): The encoding format for messages.
     - selector (selectors.DefaultSelector): The selector for monitoring read events.
-    - is_running (bool): Flag indicating whether the client is running.
-    - communication_utils (ClientProtocols): Utility class for client-server communication.
-    - airplane (Airplane): The airplane object associated with the client.
+    - is_running (bool): Flag indicating whether the client_side is running.
+    - communication_utils (ClientProtocols): Utility class for client_side-server_side communication.
+    - airplane (Airplane): The airplane object associated with the client_side.
     """
 
     def __init__(self):
@@ -49,13 +46,13 @@ class Client:
 
     def read_message_from_server(self, client_socket):
         """
-        Reads a message from the server.
+        Reads a message from the server_side.
 
         Parameters:
-        - client_socket (socket): The client socket.
+        - client_socket (socket): The client_side socket.
 
         Returns:
-        - dict: The message received from the server.
+        - dict: The message received from the server_side.
         """
         message_from_server_json = client_socket.recv(self.BUFFER)
         deserialized_message = self.serialize_utils.deserialize_json(message_from_server_json)
@@ -64,21 +61,21 @@ class Client:
 
     def send_message_to_server(self, client_socket, data):
         """
-        Sends a message to the server.
+        Sends a message to the server_side.
 
         Parameters:
-        - client_socket (socket): The client socket.
-        - data (dict): The data to be sent to the server.
+        - client_socket (socket): The client_side socket.
+        - data (dict): The data to be sent to the server_side.
         """
         client_request = self.serialize_utils.serialize_to_json(data)
         client_socket.sendall(client_request)
 
     def initial_correspondence_with_server(self, client_socket):
         """
-        Handles the initial correspondence with the server.
+        Handles the initial correspondence with the server_side.
 
         Parameters:
-        - client_socket (socket): The client socket.
+        - client_socket (socket): The client_side socket.
         """
         server_response = self.read_message_from_server(client_socket)
         if "Airport`s full: " in server_response["message"] and "You have to fly to another..." in server_response["body"]:
@@ -93,10 +90,10 @@ class Client:
 
     def send_airplane_coordinates(self, client_socket, sleep_time_in_sec):
         """
-        Sends the current coordinates of the airplane to the server.
+        Sends the current coordinates of the airplane to the server_side.
 
         Parameters:
-        - client_socket (socket): The client socket.
+        - client_socket (socket): The client_side socket.
         """
         coordinates = self.communication_utils.airplane_coordinates_message(
             {"x": self.airplane.x,
@@ -108,30 +105,30 @@ class Client:
 
     def establish_initial_airplane_points(self, client_socket):
         """
-        Establishes the initial points of the airplane by reading data from the server.
+        Establishes the initial points of the airplane by reading data from the server_side.
 
         Parameters:
-        - client_socket (socket): The client socket.
+        - client_socket (socket): The client_side socket.
         """
         points = self.read_message_from_server(client_socket)
         self.airplane.set_points(points)
 
     def send_airplane_obj_to_server(self, client_socket):
         """
-        Sends the airplane object to the server after converting it to a JSON format.
+        Sends the airplane object to the server_side after converting it to a JSON format.
 
         Parameters:
-        - client_socket (socket): The client socket.
+        - client_socket (socket): The client_side socket.
         """
         airplane_obj = self.communication_utils.message_with_airplane_object(self.airplane.parse_airplane_obj_to_json())
         self.send_message_to_server(client_socket, airplane_obj)
 
     def check_additional_messages_from_server(self):
         """
-        Checks for additional messages from the server.
+        Checks for additional messages from the server_side.
 
         Returns:
-        - dict or None: The message received from the server if available, otherwise None.
+        - dict or None: The message received from the server_side if available, otherwise None.
         """
         events = self.selector.select(timeout = 0)
         if events:
@@ -144,10 +141,10 @@ class Client:
 
     def handling_additional_messages_from_server(self, client_socket):
         """
-        Handles additional messages received from the server.
+        Handles additional messages received from the server_side.
 
         Parameters:
-        - client_socket (socket): The client socket used for communication with the server.
+        - client_socket (socket): The client_side socket used for communication with the server_side.
         """
         event_message = self.check_additional_messages_from_server()
         if event_message is not None:
@@ -159,16 +156,16 @@ class Client:
 
     def start(self):
         """
-        Starts the client by establishing a connection with the server and handling messages.
+        Starts the client_side by establishing a connection with the server_side and handling messages.
 
-        This method sets up a socket connection with the server, registers the client socket
+        This method sets up a socket connection with the server_side, registers the client_side socket
         with the selector for monitoring read events, and then starts the initial correspondence
-        with the server. It continues handling additional messages and airplane movement until
-        the client is stopped due to an OSError or automatically when the airplane lands safely,
+        with the server_side. It continues handling additional messages and airplane movement until
+        the client_side is stopped due to an OSError or automatically when the airplane lands safely,
         crashes due to a collision, or runs out of fuel.
 
         Raises:
-        - OSError: If an error occurs during the execution of the client.
+        - OSError: If an error occurs during the execution of the client_side.
         """
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
             print("CLIENT`S UP...")
@@ -187,13 +184,13 @@ class Client:
 
     def stop(self, client_socket):
         """
-        Stops the client by closing the selector and client socket.
+        Stops the client_side by closing the selector and client_side socket.
 
-        This method closes the selector and client socket, effectively stopping the client's
-        connection with the server.
+        This method closes the selector and client_side socket, effectively stopping the client_side's
+        connection with the server_side.
 
         Parameters:
-        - client_socket (socket): The client socket to be closed.
+        - client_socket (socket): The client_side socket to be closed.
         """
         print("CLIENT`S OUT...")
         self.selector.close()

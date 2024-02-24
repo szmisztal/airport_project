@@ -1,6 +1,6 @@
 import datetime
 import random
-from server.math_calculation import euclidean_formula, movement_formula
+from airport_app.server_side.math_calculation import euclidean_formula, movement_formula
 
 
 class Airplane:
@@ -8,7 +8,7 @@ class Airplane:
     Class representing an airplane in the airport simulation.
 
     Attributes:
-    - client: Client handling the airplane's communication with the server.
+    - client_side: Client handling the airplane's communication with the server_side.
     - date_of_appearance: Date and time of the airplane's appearance.
     - id: Identifier of the airplane.
     - x: X-coordinate of the airplane.
@@ -29,7 +29,7 @@ class Airplane:
         Initializes the airplane object.
 
         Parameters:
-        - client: Client handling the airplane's communication with the server.
+        - client_side: Client handling the airplane's communication with the server_side.
         - coordinates: Dictionary containing the initial coordinates of the airplane.
         """
         self.client = client
@@ -132,11 +132,11 @@ class Airplane:
 
     def count_distance_and_send_airplane_coordinates(self, client_socket, target_coordinates):
         """
-        Calculates the distance to the target coordinates, sends the airplane coordinates to the client socket,
+        Calculates the distance to the target coordinates, sends the airplane coordinates to the client_side socket,
         and returns the calculated distance.
 
         Parameters:
-        - client_socket: The socket used for communication with the client.
+        - client_socket: The socket used for communication with the client_side.
         - target_coordinates: A list containing the x, y, and z coordinates of the target.
 
         Returns:
@@ -148,10 +148,10 @@ class Airplane:
 
     def direct_to_initial_landing_point(self, client_socket):
         """
-        Directs the airplane to the initial landing point and handles the response from the server.
+        Directs the airplane to the initial landing point and handles the response from the server_side.
 
         Parameters:
-        - client_socket: The socket used for communication with the client.
+        - client_socket: The socket used for communication with the client_side.
         """
         distance = self.count_distance_and_send_airplane_coordinates(client_socket, self.initial_landing_point)
         if distance < 100:
@@ -169,7 +169,7 @@ class Airplane:
         Directs the airplane to the waiting point and updates the flags accordingly.
 
         Parameters:
-        - client_socket: The socket used for communication with the client.
+        - client_socket: The socket used for communication with the client_side.
         """
         distance = self.count_distance_and_send_airplane_coordinates(client_socket, self.waiting_point)
         if distance < 100:
@@ -181,7 +181,7 @@ class Airplane:
         Directs the airplane to the runway and handles the landing procedure.
 
         Parameters:
-        - client_socket: The socket used for communication with the client.
+        - client_socket: The socket used for communication with the client_side.
         """
         distance = self.count_distance_and_send_airplane_coordinates(client_socket, self.zero_point)
         if distance < 50:
@@ -193,7 +193,7 @@ class Airplane:
         Manages the movement of the airplane based on its current state and fuel availability.
 
         Parameters:
-        - client_socket: The socket used for communication with the client.
+        - client_socket: The socket used for communication with the client_side.
         """
         fuel = self.fuel_consumption()
         if fuel:

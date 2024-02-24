@@ -1,9 +1,9 @@
-from server.server_messages import CommunicationUtils
+from airport_app.server_side.server_messages import CommunicationUtils
 
 
 class ClientProtocols(CommunicationUtils):
     """
-    A class representing client-specific communication protocols.
+    A class representing client_side-specific communication protocols.
 
     Inherits:
     - CommunicationUtils: Base class providing utility method for communication protocols.

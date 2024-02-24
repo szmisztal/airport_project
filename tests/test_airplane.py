@@ -1,6 +1,6 @@
 import pytest
 import datetime
-from client.airplane import Airplane
+from airport_app.client_side.airplane import Airplane
 
 
 @pytest.fixture

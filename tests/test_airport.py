@@ -1,5 +1,5 @@
 import pytest
-from server.airport import Airport
+from airport_app.server_side.airport import Airport
 
 
 @pytest.fixture

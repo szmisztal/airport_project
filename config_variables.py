@@ -2,10 +2,10 @@ import socket as s
 
 """
 HOST: str
-    The IP address of the server to connect to.
+    The IP address of the server_side to connect to.
 
 PORT: int
-    The port number on the server to connect to.
+    The port number on the server_side to connect to.
 
 BUFFER: int
     The size of the buffer used for sending and receiving data over sockets.

@@ -1,7 +1,7 @@
 import pytest
 import socket as s
-from server.server import Server, ClientHandler
-from server.database_and_serialization_managment import SerializeUtils
+from airport_app.server_side.server import Server, ClientHandler
+from airport_app.server_side.database_and_serialization_managment import SerializeUtils
 
 
 @pytest.fixture

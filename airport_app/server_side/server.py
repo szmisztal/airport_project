@@ -1,16 +1,13 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import datetime
 import logging
 import socket as s
 import threading
 from threading import Lock
 from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
-from database_and_serialization_managment import SerializeUtils, DatabaseUtils
-from server_messages import ServerProtocols, HandlerProtocols
-from airport import Airport, Radar
-from connection_pool import ConnectionPool
+from airport_app.server_side.database_and_serialization_managment import SerializeUtils, DatabaseUtils
+from airport_app.server_side.server_messages import ServerProtocols, HandlerProtocols
+from airport_app.server_side.airport import Airport, Radar
+from airport_app.server_side.connection_pool import ConnectionPool
 
 
 logging.basicConfig(filename ="servers_logs.log", level = logging.INFO, format ="%(asctime)s - %(levelname)s - %(message)s")
@@ -18,20 +15,20 @@ logging.basicConfig(filename ="servers_logs.log", level = logging.INFO, format =
 
 class ClientHandler(threading.Thread):
     """
-    Handles communication with a single client connected to the server.
+    Handles communication with a single client_side connected to the server_side.
 
     Attributes:
-        server: server whose manage this handler.
-        client_socket (socket): The socket object representing the client connection.
-        address (tuple): The address of the client (IP address, port number).
-        thread_id (int): The unique identifier of the thread handling this client connection.
+        server: server_side whose manage this handler.
+        client_socket (socket): The socket object representing the client_side connection.
+        address (tuple): The address of the client_side (IP address, port number).
+        thread_id (int): The unique identifier of the thread handling this client_side connection.
         connection (Connection): The database connection obtained from the connection pool.
         BUFFER (int): The size of the buffer used for sending and receiving data.
         serialize_utils (SerializeUtils): An instance of the SerializeUtils class for serialization.
         database_utils (DatabaseUtils): An instance of the DatabaseUtils class for database operations.
         communication_utils (HandlerProtocols): An instance of the HandlerProtocols class for communication protocols.
-        is_running (bool): Flag indicating whether the client handler is running.
-        airplane_object (dict): Dictionary representing the airplane object associated with the client.
+        is_running (bool): Flag indicating whether the client_side handler is running.
+        airplane_object (dict): Dictionary representing the airplane object associated with the client_side.
         airplane_key (str): Key used to identify the airplane object in the dictionary.
     """
 
@@ -40,11 +37,11 @@ class ClientHandler(threading.Thread):
         Initializes a ClientHandler instance.
 
         Parameters:
-            server: server whose manage client handlers.
-            client_socket (socket): The socket object representing the client connection.
-            address (tuple): The address of the client (IP address, port number).
-            thread_id (int): The unique identifier of the thread handling this client connection.
-            connection_pool: Connection pool object initialized before start the server.
+            server: server_side whose manage client_side handlers.
+            client_socket (socket): The socket object representing the client_side connection.
+            address (tuple): The address of the client_side (IP address, port number).
+            thread_id (int): The unique identifier of the thread handling this client_side connection.
+            connection_pool: Connection pool object initialized before start the server_side.
         """
         super().__init__()
         self.server = server
@@ -62,23 +59,23 @@ class ClientHandler(threading.Thread):
 
     def send_message_to_client(self, data):
         """
-        Sends a message to the client.
+        Sends a message to the client_side.
 
         Parameters:
-            data (dict): The message data to be sent to the client.
+            data (dict): The message data to be sent to the client_side.
         """
         message = self.serialize_utils.serialize_to_json(data)
         self.client_socket.sendall(message)
 
     def read_message_from_client(self, client_socket):
         """
-        Reads a message from the client socket.
+        Reads a message from the client_side socket.
 
         Parameters:
-            client_socket (socket): The client socket object from which to read the message.
+            client_socket (socket): The client_side socket object from which to read the message.
 
         Returns:
-            dict: The deserialized message received from the client.
+            dict: The deserialized message received from the client_side.
         """
         message_from_client_json = client_socket.recv(self.BUFFER)
         deserialized_message = self.serialize_utils.deserialize_json(message_from_client_json)
@@ -86,20 +83,20 @@ class ClientHandler(threading.Thread):
 
     def welcome_message(self, id):
         """
-        Sends a welcome message to the client.
+        Sends a welcome message to the client_side.
 
         Parameters:
-            id (int): The identifier of the client.
+            id (int): The identifier of the client_side.
         """
         welcome_message = self.communication_utils.welcome_message_to_client(id)
         self.send_message_to_client(welcome_message)
 
     def response_from_client_with_coordinates(self):
         """
-        Reads the coordinates message from the client and returns the coordinates.
+        Reads the coordinates message from the client_side and returns the coordinates.
 
         Returns:
-            dict: The coordinates received from the client.
+            dict: The coordinates received from the client_side.
         """
         coordinates_json = self.client_socket.recv(self.BUFFER)
         coordinates = self.serialize_utils.deserialize_json(coordinates_json)["body"]
@@ -121,12 +118,12 @@ class ClientHandler(threading.Thread):
 
     def initial_correspondence_with_client(self, client_socket):
         """
-        Handles the initial correspondence with the client.
+        Handles the initial correspondence with the client_side.
         Sends welcome message, obtains coordinates, establishes service points for the airplane,
-        reads airplane object from client, and sends direction message to client.
+        reads airplane object from client_side, and sends direction message to client_side.
 
         Parameters:
-            client_socket (socket): The client socket object.
+            client_socket (socket): The client_side socket object.
         """
         self.welcome_message(self.thread_id)
         coordinates = self.response_from_client_with_coordinates()
@@ -153,7 +150,7 @@ class ClientHandler(threading.Thread):
         Updates the coordinates of the airplane object and checks for collisions.
 
         Parameters:
-            response_from_client (dict): The response received from the client.
+            response_from_client (dict): The response received from the client_side.
         """
         coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
         self.airplane_object[self.airplane_key]["coordinates"] = coordinates
@@ -173,12 +170,12 @@ class ClientHandler(threading.Thread):
 
     def handle_response_from_client(self, response_from_client):
         """
-        Handles the response received from the client.
+        Handles the response received from the client_side.
         Depending on the message received, it directs the airplane accordingly,
         updates its coordinates, or handles landing or crashing scenarios.
 
         Parameters:
-            response_from_client (dict): The response received from the client.
+            response_from_client (dict): The response received from the client_side.
         """
         air_corridor = getattr(self.server.airport, "air_corridor")[self.airplane_object[self.airplane_key]["quarter"][0]]
         if "We reached the target: " in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
@@ -199,8 +196,8 @@ class ClientHandler(threading.Thread):
 
     def run(self):
         """
-        Starts the client handler thread.
-        Manages the communication with the client, handles responses, and manages the client's lifecycle.
+        Starts the client_side handler thread.
+        Manages the communication with the client_side, handles responses, and manages the client_side's lifecycle.
         """
         self.initial_correspondence_with_client(self.client_socket)
         self.database_utils.add_new_connection_to_db(self.connection, self.airplane_key)
@@ -217,8 +214,8 @@ class ClientHandler(threading.Thread):
 
     def stop(self):
         """
-        Stops the client handler thread.
-        Releases the connection, removes the client from the client list, and closes the client socket.
+        Stops the client_side handler thread.
+        Releases the connection, removes the client_side from the client_side list, and closes the client_side socket.
         """
         print(f"CLIENT: {self.thread_id} IS OUT...")
         connection_pool.release_connection(self.connection)
@@ -229,7 +226,7 @@ class ClientHandler(threading.Thread):
 
 class Server:
     """
-    Represents the server handling the airport operations.
+    Represents the server_side handling the airport operations.
 
     Attributes:
         HOST (str): The host address.
@@ -239,12 +236,12 @@ class Server:
         serialize_utils (SerializeUtils): An instance of SerializeUtils for serialization.
         database_utils (DatabaseUtils): An instance of DatabaseUtils for database operations.
         lock (Lock): A lock for thread synchronization.
-        is_running (bool): A flag indicating whether the server is running.
-        start_date (datetime): The start date and time of the server.
-        version (str): The version of the server.
+        is_running (bool): A flag indicating whether the server_side is running.
+        start_date (datetime): The start date and time of the server_side.
+        version (str): The version of the server_side.
         airport (Airport): An instance of the Airport class.
         communication_utils (ServerProtocols): An instance of ServerProtocols for communication protocols.
-        server_connection: The server's database connection.
+        server_connection: The server_side's database connection.
         clients_list (list): A list of connected clients.
     """
 
@@ -253,7 +250,7 @@ class Server:
         Initializes the Server class with default values and objects.
 
         Parameters:
-            - connection_pool: Connection pool object initialized before start the server.
+            - connection_pool: Connection pool object initialized before start the server_side.
         """
         self.HOST = HOST
         self.PORT = PORT
@@ -272,7 +269,7 @@ class Server:
 
     def check_server_lifetime(self):
         """
-        Checks the server's lifetime to determine if it should stop running.
+        Checks the server_side's lifetime to determine if it should stop running.
         """
         current_time = datetime.datetime.now()
         time_difference = current_time - self.start_date
@@ -281,22 +278,22 @@ class Server:
 
     def db_service_when_server_starts(self):
         """
-        Performs database-related services when the server starts.
-        This includes creating database tables and adding a new server period.
+        Performs database-related services when the server_side starts.
+        This includes creating database tables and adding a new server_side period.
         """
         self.database_utils.create_db_tables(self.server_connection)
         self.database_utils.add_new_server_period(self.server_connection)
 
     def create_and_start_new_thread(self, client_socket, address):
         """
-        Creates and starts a new thread to handle a client connection.
+        Creates and starts a new thread to handle a client_side connection.
 
         Parameters:
-            client_socket (socket): The client socket object.
-            address (tuple): The client address.
+            client_socket (socket): The client_side socket object.
+            address (tuple): The client_side address.
 
         Returns:
-            ClientHandler: The handler for the client connection.
+            ClientHandler: The handler for the client_side connection.
         """
         thread_id = self.database_utils.get_all_airplanes_number_per_period(self.server_connection) + 1
         client_handler = ClientHandler(self, client_socket, address, thread_id, connection_pool)
@@ -306,10 +303,10 @@ class Server:
 
     def handle_handler_exception(self, client_handler, error):
         """
-        Handles exceptions raised in the client handler thread.
+        Handles exceptions raised in the client_side handler thread.
 
         Parameters:
-            client_handler (ClientHandler): The client handler thread object.
+            client_handler (ClientHandler): The client_side handler thread object.
             error (Exception): The exception raised.
         """
         logger.exception(f"Error in handler {client_handler.thread_id}: {error}")
@@ -317,10 +314,10 @@ class Server:
 
     def handle_full_airport_situation(self, client_socket):
         """
-        Handles the situation when the airport is full and rejects client connection.
+        Handles the situation when the airport is full and rejects client_side connection.
 
         Parameters:
-            client_socket (socket): The client socket object.
+            client_socket (socket): The client_side socket object.
         """
         airport_full_message = self.communication_utils.airport_is_full_message()
         airport_full_message_json = self.serialize_utils.serialize_to_json(airport_full_message)
@@ -329,14 +326,14 @@ class Server:
 
     def handler_manager(self, client_socket, address):
         """
-        Manages the creation of client handler threads and handles situations when the airport is full.
+        Manages the creation of client_side handler threads and handles situations when the airport is full.
 
         Parameters:
-            client_socket (socket): The client socket object.
-            address (tuple): The client address.
+            client_socket (socket): The client_side socket object.
+            address (tuple): The client_side address.
 
         Returns:
-            ClientHandler or None: The handler for the client connection if created, None otherwise.
+            ClientHandler or None: The handler for the client_side connection if created, None otherwise.
         """
         try:
             with self.lock:
@@ -350,10 +347,10 @@ class Server:
 
     def server_work_manager(self, server_socket):
         """
-        Manages the server's work, accepts client connections, and handles exceptions.
+        Manages the server_side's work, accepts client_side connections, and handles exceptions.
 
         Parameters:
-            server_socket (socket): The server socket object.
+            server_socket (socket): The server_side socket object.
         """
         try:
             self.check_server_lifetime()
@@ -370,7 +367,7 @@ class Server:
 
     def start(self):
         """
-        Starts the server, initializes necessary services, and handles server operations.
+        Starts the server_side, initializes necessary services, and handles server_side operations.
         """
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             print("SERVER`S UP...")
@@ -381,17 +378,17 @@ class Server:
                 while self.is_running:
                     self.server_work_manager(server_socket)
             except OSError as e:
-                logger.exception(f"Error in server: {e}")
+                logger.exception(f"Error in server_side: {e}")
                 self.is_running = False
             finally:
                 self.stop(server_socket)
 
     def stop(self, server_socket):
         """
-        Stops the server, closes client connections, and performs cleanup operations.
+        Stops the server_side, closes client_side connections, and performs cleanup operations.
 
         Parameters:
-            server_socket (socket): The server socket object.
+            server_socket (socket): The server_side socket object.
         """
         print("SERVER`S OUT...")
         for handler in self.clients_list:

@@ -107,7 +107,7 @@ class DatabaseUtils:
 
     def add_new_server_period(self, connection):
         """
-        Adds a new server period to the database.
+        Adds a new server_side period to the database.
 
         Parameters:
         - connection: Database connection object.
@@ -142,7 +142,7 @@ class DatabaseUtils:
 
     def update_period_end(self, connection):
         """
-        Updates the end time of the current server period in the database.
+        Updates the end time of the current server_side period in the database.
 
         Parameters:
         - connection: Database connection object.
@@ -153,13 +153,13 @@ class DatabaseUtils:
 
     def get_period_id(self, connection):
         """
-        Retrieves the ID of the current server period from the database.
+        Retrieves the ID of the current server_side period from the database.
 
         Parameters:
         - connection: Database connection object.
 
         Returns:
-        - int: ID of the current server period.
+        - int: ID of the current server_side period.
         """
         period_id_query = "SELECT MAX(period_id) FROM server_periods"
         period_id = self.execute_sql_query(connection, period_id_query, fetch_option = "fetchone")[0]
