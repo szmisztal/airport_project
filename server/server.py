@@ -1,16 +1,19 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import datetime
 import logging
 import socket as s
 import threading
 from threading import Lock
-from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
+from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
 from database_and_serialization_managment import SerializeUtils, DatabaseUtils
-from server_client_messages import ServerProtocols, HandlerProtocols
+from server_messages import ServerProtocols, HandlerProtocols
 from airport import Airport, Radar
 from connection_pool import ConnectionPool
 
 
-logging.basicConfig(filename = "servers_logs.log", level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(filename ="servers_logs.log", level = logging.INFO, format ="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class ClientHandler(threading.Thread):

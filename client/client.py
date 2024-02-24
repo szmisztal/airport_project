@@ -1,14 +1,17 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import selectors
 import socket as s
 import time
 import logging
-from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
-from database_and_serialization_managment import SerializeUtils
+from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from server.database_and_serialization_managment import SerializeUtils
 from airplane import Airplane
-from server_client_messages import ClientProtocols
+from client_messages import ClientProtocols
 
 
-logging.basicConfig(filename = "clients_logs.log", level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(filename ="clients_logs.log", level = logging.INFO, format ="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class Client:

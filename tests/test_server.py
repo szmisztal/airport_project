@@ -1,7 +1,7 @@
 import pytest
 import socket as s
-from server import Server, ClientHandler
-from database_and_serialization_managment import SerializeUtils
+from server.server import Server, ClientHandler
+from server.database_and_serialization_managment import SerializeUtils
 
 
 @pytest.fixture

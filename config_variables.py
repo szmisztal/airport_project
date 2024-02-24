@@ -31,4 +31,3 @@ INTERNET_ADDRESS_FAMILY = s.AF_INET
 SOCKET_TYPE = s.SOCK_STREAM
 db_file = "airport_db.db"
 
-

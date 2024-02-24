@@ -1,6 +1,6 @@
 import datetime
 import random
-from math_calculation import euclidean_formula, movement_formula
+from server.math_calculation import euclidean_formula, movement_formula
 
 
 class Airplane:

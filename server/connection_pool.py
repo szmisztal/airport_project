@@ -3,7 +3,7 @@ import schedule
 import sqlite3
 from sqlite3 import Error
 from database_and_serialization_managment import SerializeUtils
-from variables import db_file
+from config_variables import db_file
 
 
 class Connection:

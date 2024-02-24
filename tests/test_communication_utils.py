@@ -1,5 +1,5 @@
 import pytest
-from server_client_messages import CommunicationUtils
+from server.sever_messages import CommunicationUtils
 
 
 @pytest.fixture

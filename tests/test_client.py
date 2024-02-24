@@ -1,8 +1,8 @@
 import pytest
 import socket as s
-from client import Client
-from airplane import Airplane
-from database_and_serialization_managment import SerializeUtils
+from client.client import Client
+from client.airplane import Airplane
+from server.database_and_serialization_managment import SerializeUtils
 
 
 @pytest.fixture

@@ -1,5 +1,5 @@
 import pytest
-from connection_pool import Connection, ConnectionPool
+from server.connection_pool import Connection, ConnectionPool
 
 
 @pytest.fixture
