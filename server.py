@@ -3,14 +3,11 @@ import logging
 import socket as s
 import threading
 from threading import Lock
-from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
-from airport_app.server_side.database_and_serialization_managment import SerializeUtils, DatabaseUtils
-from airport_app.server_side.server_messages import ServerProtocols, HandlerProtocols
-from airport_app.server_side.airport import Airport, Radar
-from airport_app.server_side.connection_pool import ConnectionPool
-
-
-logging.basicConfig(filename ="servers_logs.log", level = logging.INFO, format ="%(asctime)s - %(levelname)s - %(message)s")
+from config_variables_for_server_and_client import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, logger_config
+from database_and_serialization_managment import SerializeUtils, DatabaseUtils
+from server_messages import ServerProtocols, HandlerProtocols
+from airport import Airport, Radar
+from connection_pool import ConnectionPool
 
 
 class ClientHandler(threading.Thread):
@@ -50,6 +47,7 @@ class ClientHandler(threading.Thread):
         self.thread_id = thread_id
         self.connection = connection_pool.get_connection()
         self.BUFFER = BUFFER
+        self.logger = logging.getLogger(f"ClientHandler_{self.thread_id}")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.communication_utils = HandlerProtocols()
@@ -89,6 +87,7 @@ class ClientHandler(threading.Thread):
             id (int): The identifier of the client_side.
         """
         welcome_message = self.communication_utils.welcome_message_to_client(id)
+        self.logger.info(f"Client_{self.thread_id} connected")
         self.send_message_to_client(welcome_message)
 
     def response_from_client_with_coordinates(self):
@@ -207,7 +206,7 @@ class ClientHandler(threading.Thread):
                 response_from_client = self.read_message_from_client(self.client_socket)
                 self.handle_response_from_client(response_from_client)
         except Exception as e:
-            logger.exception(f"Error in thread {self.thread_id}: {e}")
+            self.logger.exception(f"Error in thread {self.thread_id}: {e}")
             self.is_running = False
         finally:
             self.stop()
@@ -220,7 +219,7 @@ class ClientHandler(threading.Thread):
         print(f"CLIENT: {self.thread_id} IS OUT...")
         connection_pool.release_connection(self.connection)
         self.server.clients_list.remove(self)
-        logger.info(f"Client {self.thread_id} out")
+        self.logger.info(f"Client {self.thread_id} out")
         self.client_socket.close()
 
 
@@ -233,6 +232,7 @@ class Server:
         PORT (int): The port number.
         INTERNET_ADDRESS_FAMILY: The internet address family.
         SOCKET_TYPE: The socket type.
+        logger: The logger object.
         serialize_utils (SerializeUtils): An instance of SerializeUtils for serialization.
         database_utils (DatabaseUtils): An instance of DatabaseUtils for database operations.
         lock (Lock): A lock for thread synchronization.
@@ -256,12 +256,14 @@ class Server:
         self.PORT = PORT
         self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
         self.SOCKET_TYPE = SOCKET_TYPE
+        self.logger = logging.getLogger("Server")
+        logger_config("server_logs.log")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.lock = Lock()
         self.is_running = True
         self.start_date = datetime.datetime.now()
-        self.version = "1.2.0"
+        self.version = "1.2.2"
         self.airport = Airport()
         self.communication_utils = ServerProtocols()
         self.server_connection = connection_pool.get_connection()
@@ -309,7 +311,7 @@ class Server:
             client_handler (ClientHandler): The client_side handler thread object.
             error (Exception): The exception raised.
         """
-        logger.exception(f"Error in handler {client_handler.thread_id}: {error}")
+        self.logger.exception(f"Error in handler {client_handler.thread_id}: {error}")
         client_handler.stop()
 
     def handle_full_airport_situation(self, client_socket):
@@ -357,7 +359,7 @@ class Server:
             server_socket.settimeout(0.01)
             radar.draw()
             client_socket, address = server_socket.accept()
-            logger.info(f"Connection from {address}")
+            self.logger.info(f"Connection from {address}")
             client_socket.settimeout(5)
             client_handler = self.handler_manager(client_socket, address)
         except s.timeout:
@@ -378,7 +380,7 @@ class Server:
                 while self.is_running:
                     self.server_work_manager(server_socket)
             except OSError as e:
-                logger.exception(f"Error in server_side: {e}")
+                self.logger.exception(f"Error in server_side: {e}")
                 self.is_running = False
             finally:
                 self.stop(server_socket)
@@ -394,13 +396,12 @@ class Server:
         for handler in self.clients_list:
             handler.stop()
         self.database_utils.update_period_end(self.server_connection)
-        logger.info("Server`s out")
+        self.logger.info("Server`s out")
         server_socket.close()
 
 
 
 if __name__ == "__main__":
-    logger = logging.getLogger(__name__)
     connection_pool = ConnectionPool(10, 100)
     server = Server(connection_pool)
     radar = Radar(server.airport)

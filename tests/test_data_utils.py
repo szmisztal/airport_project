@@ -1,5 +1,5 @@
 import pytest
-from airport_app.server_side.database_and_serialization_managment import SerializeUtils, DatabaseUtils
+from database_and_serialization_managment import SerializeUtils, DatabaseUtils
 
 
 @pytest.fixture

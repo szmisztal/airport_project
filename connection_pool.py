@@ -2,8 +2,8 @@ from threading import Lock
 import schedule
 import sqlite3
 from sqlite3 import Error
-from airport_app.server_side.database_and_serialization_managment import SerializeUtils
-from config_variables import db_file
+from database_and_serialization_managment import SerializeUtils
+from config_variables_for_server_and_client import db_file
 
 
 class Connection:

@@ -1,27 +1,25 @@
+import logging
 import selectors
 import socket as s
 import time
-import logging
-from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
-from airport_app.server_side.database_and_serialization_managment import SerializeUtils
-from airport_app.client_side.airplane import Airplane
-from airport_app.client_side.client_messages import ClientProtocols
-
-
-logging.basicConfig(filename ="clients_logs.log", level = logging.INFO, format ="%(asctime)s - %(levelname)s - %(message)s")
+from config_variables_for_server_and_client import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, logger_config
+from database_and_serialization_managment import SerializeUtils
+from airplane import Airplane
+from client_messages import ClientProtocols
 
 
 class Client:
     """
     Represents a client_side for the airport simulation.
 
-    Attributes:
+    Attributes:s
     - HOST (str): The host address to connect to.
     - PORT (int): The port number to connect to.
     - INTERNET_ADDRESS_FAMILY (int): The internet address family (e.g., AF_INET for IPv4).
     - SOCKET_TYPE (int): The socket type (e.g., SOCK_STREAM for TCP).
     - BUFFER (int): The size of the buffer for receiving messages.
     - encode_format (str): The encoding format for messages.
+    - logger: The logger object.
     - selector (selectors.DefaultSelector): The selector for monitoring read events.
     - is_running (bool): Flag indicating whether the client_side is running.
     - communication_utils (ClientProtocols): Utility class for client_side-server_side communication.
@@ -38,6 +36,8 @@ class Client:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
+        self.logger = logging.getLogger("Client")
+        logger_config("clients_log.log")
         self.selector = selectors.DefaultSelector()
         self.serialize_utils = SerializeUtils()
         self.is_running = True
@@ -82,6 +82,7 @@ class Client:
             self.stop(client_socket)
         else:
             self.airplane.id = server_response["id"]
+            self.logger.info(f"Client_{self.airplane.id}`s up")
             self.send_airplane_coordinates(client_socket, 0)
             self.establish_initial_airplane_points(client_socket)
             self.send_airplane_obj_to_server(client_socket)
@@ -177,7 +178,7 @@ class Client:
                     self.handling_additional_messages_from_server(client_socket)
                     self.airplane.airplane_movement_manager(client_socket)
             except OSError as e:
-                logger.exception(f"Error: {e}")
+                self.logger.exception(f"Error: {e}")
                 self.is_running = False
             finally:
                 self.stop(client_socket)
@@ -192,13 +193,13 @@ class Client:
         Parameters:
         - client_socket (socket): The client_side socket to be closed.
         """
+        self.logger.info(f"Client_{self.airplane.id}`s out")
         print("CLIENT`S OUT...")
         self.selector.close()
         client_socket.close()
 
 
-
+#
 if __name__ == "__main__":
-    logger = logging.getLogger(__name__)
     client = Client()
     client.start()

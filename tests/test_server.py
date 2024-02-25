@@ -1,7 +1,7 @@
 import pytest
 import socket as s
-from airport_app.server_side.server import Server, ClientHandler
-from airport_app.server_side.database_and_serialization_managment import SerializeUtils
+from server import Server, ClientHandler
+from database_and_serialization_managment import SerializeUtils
 
 
 @pytest.fixture
@@ -83,6 +83,6 @@ def test_server_init(init_server):
     assert server.INTERNET_ADDRESS_FAMILY == s.AF_INET
     assert server.SOCKET_TYPE == s.SOCK_STREAM
     assert server.is_running == True
-    assert server.version == "1.2.0"
+    assert server.version == "1.2.2"
     assert len(server.clients_list) == 0
 

@@ -1,4 +1,4 @@
-from airport_app.server_side.server_messages import CommunicationUtils
+from server_messages import CommunicationUtils
 
 
 class ClientProtocols(CommunicationUtils):

@@ -1,4 +1,7 @@
 import socket as s
+import os
+import logging
+
 
 """
 HOST: str
@@ -31,3 +34,13 @@ INTERNET_ADDRESS_FAMILY = s.AF_INET
 SOCKET_TYPE = s.SOCK_STREAM
 db_file = "airport_db.db"
 
+def logger_config(file_name):
+    log_folder = os.path.dirname(os.path.abspath(__name__))
+    logging.basicConfig(
+        level = logging.INFO,
+        format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers = [
+            logging.FileHandler(os.path.join(log_folder, file_name)),
+            logging.StreamHandler()
+        ]
+    )
