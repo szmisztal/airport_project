@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 import socket as s
 import threading
 from threading import Lock
@@ -29,7 +30,7 @@ class ClientHandler(threading.Thread):
         airplane_key (str): Key used to identify the airplane object in the dictionary.
     """
 
-    def __init__(self, server, client_socket, address, thread_id, connection_pool):
+    def __init__(self, server, client_socket, address, thread_id):
         """
         Initializes a ClientHandler instance.
 
@@ -38,14 +39,13 @@ class ClientHandler(threading.Thread):
             client_socket (socket): The socket object representing the client_side connection.
             address (tuple): The address of the client_side (IP address, port number).
             thread_id (int): The unique identifier of the thread handling this client_side connection.
-            connection_pool: Connection pool object initialized before start the server_side.
         """
         super().__init__()
         self.server = server
         self.client_socket = client_socket
         self.address = address
         self.thread_id = thread_id
-        self.connection = connection_pool.get_connection()
+        self.connection = self.server.connection_pool.get_connection()
         self.BUFFER = BUFFER
         self.logger = logging.getLogger(f"ClientHandler_{self.thread_id}")
         self.serialize_utils = SerializeUtils()
@@ -216,8 +216,7 @@ class ClientHandler(threading.Thread):
         Stops the client_side handler thread.
         Releases the connection, removes the client_side from the client_side list, and closes the client_side socket.
         """
-        print(f"CLIENT: {self.thread_id} IS OUT...")
-        connection_pool.release_connection(self.connection)
+        self.server.connection_pool.release_connection(self.connection)
         self.server.clients_list.remove(self)
         self.logger.info(f"Client {self.thread_id} out")
         self.client_socket.close()
@@ -241,6 +240,7 @@ class Server:
         version (str): The version of the server_side.
         airport (Airport): An instance of the Airport class.
         communication_utils (ServerProtocols): An instance of ServerProtocols for communication protocols.
+        connection_pool: Connection pool from which connections for server and handlers are taken
         server_connection: The server_side's database connection.
         clients_list (list): A list of connected clients.
     """
@@ -257,7 +257,7 @@ class Server:
         self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
         self.SOCKET_TYPE = SOCKET_TYPE
         self.logger = logging.getLogger("Server")
-        logger_config("server_logs.log")
+        logger_config(r"C:\Programy\Python\Projekty\airport_project\server_side", "server_logs.log")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.lock = Lock()
@@ -266,7 +266,8 @@ class Server:
         self.version = "1.2.2"
         self.airport = Airport()
         self.communication_utils = ServerProtocols()
-        self.server_connection = connection_pool.get_connection()
+        self.connection_pool = connection_pool
+        self.server_connection = self.connection_pool.get_connection()
         self.clients_list = []
 
     def check_server_lifetime(self):
@@ -298,7 +299,7 @@ class Server:
             ClientHandler: The handler for the client_side connection.
         """
         thread_id = self.database_utils.get_all_airplanes_number_per_period(self.server_connection) + 1
-        client_handler = ClientHandler(self, client_socket, address, thread_id, connection_pool)
+        client_handler = ClientHandler(self, client_socket, address, thread_id)
         self.clients_list.append(client_handler)
         client_handler.start()
         return client_handler
@@ -357,7 +358,6 @@ class Server:
         try:
             self.check_server_lifetime()
             server_socket.settimeout(0.01)
-            radar.draw()
             client_socket, address = server_socket.accept()
             self.logger.info(f"Connection from {address}")
             client_socket.settimeout(5)
@@ -372,7 +372,7 @@ class Server:
         Starts the server_side, initializes necessary services, and handles server_side operations.
         """
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
-            print("SERVER`S UP...")
+            self.logger.info("Server`s up")
             self.db_service_when_server_starts()
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
@@ -392,7 +392,6 @@ class Server:
         Parameters:
             server_socket (socket): The server_side socket object.
         """
-        print("SERVER`S OUT...")
         for handler in self.clients_list:
             handler.stop()
         self.database_utils.update_period_end(self.server_connection)
@@ -400,9 +399,3 @@ class Server:
         server_socket.close()
 
 
-
-if __name__ == "__main__":
-    connection_pool = ConnectionPool(10, 100)
-    server = Server(connection_pool)
-    radar = Radar(server.airport)
-    server.start()
