@@ -34,13 +34,23 @@ INTERNET_ADDRESS_FAMILY = s.AF_INET
 SOCKET_TYPE = s.SOCK_STREAM
 db_file = f"{os.path.dirname(os.path.realpath(__file__))}/app_db.db"
 
-def logger_config(file_name):
-    log_folder = os.path.dirname(os.path.abspath(__name__))
+def logger_config(log_folder, file_name):
+    """
+    Configure logger for the application.
+
+    Args:
+    - log_folder (str): Path to the log folder.
+    - file_name (str): Name of the log file.
+
+    Returns:
+    logging.Logger: Configured logger object.
+    """
+    log_path = os.path.join(log_folder, file_name)
     logging.basicConfig(
-        level = logging.INFO,
-        format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers = [
-            logging.FileHandler(os.path.join(log_folder, file_name)),
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(log_path),
             logging.StreamHandler()
         ]
     )
