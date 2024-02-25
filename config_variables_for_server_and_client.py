@@ -47,9 +47,9 @@ def logger_config(log_folder, file_name):
     """
     log_path = os.path.join(log_folder, file_name)
     logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[
+        level = logging.INFO,
+        format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers = [
             logging.FileHandler(log_path),
             logging.StreamHandler()
         ]
