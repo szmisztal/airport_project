@@ -4,10 +4,10 @@ import socket as s
 import threading
 from threading import Lock
 from config_variables_for_server_and_client import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, logger_config
-from database_and_serialization_managment import SerializeUtils, DatabaseUtils
-from server_messages import ServerProtocols, HandlerProtocols
-from airport import Airport, Radar
-from connection_pool import ConnectionPool
+from server_side.database_and_serialization_managment import SerializeUtils, DatabaseUtils
+from server_side.server_messages import ServerProtocols, HandlerProtocols
+from server_side.airport import Airport, Radar
+from server_side.connection_pool import ConnectionPool
 
 
 class ClientHandler(threading.Thread):

@@ -2,7 +2,7 @@ from threading import Lock
 import schedule
 import sqlite3
 from sqlite3 import Error
-from database_and_serialization_managment import SerializeUtils
+from server_side.database_and_serialization_managment import SerializeUtils
 from config_variables_for_server_and_client import db_file
 
 
@@ -17,7 +17,7 @@ class Connection:
     - in_use (bool): Flag indicating whether the connection is in use.
     """
 
-    def __init__(self):
+    def __init__(self, db_file):
         """
         Initializes a database connection.
 
@@ -77,7 +77,7 @@ class ConnectionPool:
     def create_start_connections(self):
         """Creates the initial connections in the pool."""
         for _ in range(self.min_number_of_connections):
-            connection = Connection()
+            connection = Connection(db_file)
             self.connections_list.append(connection)
 
     def get_connection(self):
@@ -96,7 +96,7 @@ class ConnectionPool:
                     return connection
             if len(self.connections_list) < self.max_number_of_connections \
                     and len(self.connections_list) + len(self.connections_in_use_list) < self.max_number_of_connections:
-                new_connection = Connection()
+                new_connection = Connection(db_file)
                 new_connection.in_use = True
                 self.connections_in_use_list.append(new_connection)
                 return new_connection
@@ -130,7 +130,7 @@ class ConnectionPool:
         """Ensures the connection pool maintains the minimum number of connections."""
         if len(self.connections_list) < self.min_number_of_connections:
             for _ in self.connections_list:
-                connection = Connection()
+                connection = Connection(db_file)
                 self.connections_list.append(connection)
                 if len(self.connections_list) == self.min_number_of_connections:
                     break

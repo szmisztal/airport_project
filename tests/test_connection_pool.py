@@ -1,11 +1,12 @@
+import os
 import pytest
-from connection_pool import Connection, ConnectionPool
+from server_side.connection_pool import Connection, ConnectionPool
 
 
 @pytest.fixture
-def init_connection_obj(mocker):
-    db_file = mocker.Mock()
-    connection = Connection()
+def init_connection_obj():
+    db_file = f"{os.path.dirname(os.path.realpath(__file__))}/test_app_db.db"
+    connection = Connection(db_file)
     connection.db_file = db_file
     return connection
 
