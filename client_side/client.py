@@ -36,8 +36,7 @@ class Client:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
-        self.logger = logging.getLogger("Client")
-        logger_config(r"C:\Programy\Python\Projekty\airport_project\client_side", "clients_log.log")
+        self.logger = logger_config("Client", r"C:\Programy\Python\Projekty\airport_project\client_side", "client_logs.log")
         self.selector = selectors.DefaultSelector()
         self.serialize_utils = SerializeUtils()
         self.is_running = True
@@ -196,3 +195,7 @@ class Client:
         self.selector.close()
         client_socket.close()
 
+
+if __name__ == "__main__":
+    client = Client()
+    client.start()
