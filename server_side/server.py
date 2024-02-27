@@ -1,12 +1,12 @@
 import datetime
-import logging
 import socket as s
 import threading
 from threading import Lock
 from config_variables_for_server_and_client import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, logger_config
+from server_side.connection_pool import ConnectionPool
 from server_side.database_and_serialization_managment import SerializeUtils, DatabaseUtils
 from server_side.server_messages import ServerProtocols, HandlerProtocols
-from server_side.airport import Airport
+from server_side.airport import Airport, Radar
 
 
 class ClientHandler(threading.Thread):
@@ -45,7 +45,7 @@ class ClientHandler(threading.Thread):
         self.thread_id = thread_id
         self.connection = self.server.connection_pool.get_connection()
         self.BUFFER = BUFFER
-        self.logger = logging.getLogger(f"ClientHandler_{self.thread_id}")
+        self.logger = logger_config(f"ClientHandler_{self.thread_id}", r"C:\Programy\Python\Projekty\airport_project\server_side", "server_logs.log")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.communication_utils = HandlerProtocols()
@@ -254,8 +254,7 @@ class Server:
         self.PORT = PORT
         self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
         self.SOCKET_TYPE = SOCKET_TYPE
-        self.logger = logging.getLogger("Server")
-        logger_config(r"C:\Programy\Python\Projekty\airport_project\server_side", "server_logs.log")
+        self.logger = logger_config("Server", r"C:\Programy\Python\Projekty\airport_project\server_side", "server_logs.log")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.lock = Lock()
@@ -397,3 +396,9 @@ class Server:
         server_socket.close()
 
 
+
+if __name__ == "__main__":
+    connection_pool = ConnectionPool(10, 100)
+    server = Server(connection_pool)
+    radar = Radar(server.airport)
+    server.start()
