@@ -1,4 +1,5 @@
 import datetime
+import os
 import socket as s
 import threading
 from threading import Lock
@@ -45,7 +46,7 @@ class ClientHandler(threading.Thread):
         self.thread_id = thread_id
         self.connection = self.server.connection_pool.get_connection()
         self.BUFFER = BUFFER
-        self.logger = logger_config(f"ClientHandler_{self.thread_id}", r"C:\Programy\Python\Projekty\airport_project\server_side", "server_logs.log")
+        self.logger = logger_config(f"ClientHandler_{self.thread_id}", os.getcwd(), "server_logs.log")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.communication_utils = HandlerProtocols()
@@ -375,6 +376,7 @@ class Server:
             server_socket.listen()
             try:
                 while self.is_running:
+                    radar.draw()
                     self.server_work_manager(server_socket)
             except OSError as e:
                 self.logger.exception(f"Error in server_side: {e}")
