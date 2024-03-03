@@ -1,24 +1,22 @@
 from flask import Flask
-from client_side.client import Client
-from server_side.server import Server
-from server_side.connection_pool import ConnectionPool
 
 
 app = Flask(__name__)
 
-@app.route("/start_airport")
+
+@app.route("/start")
 def start_airport():
     pass
 
-@app.route("/pause_airport")
+@app.route("/pause")
 def pause_airport():
     pass
 
-@app.route("/restore_airport")
+@app.route("/restore")
 def restore_airport():
     pass
 
-@app.route("/close_airport")
+@app.route("/close")
 def close_airport():
     pass
 
@@ -34,7 +32,7 @@ def count_airplanes():
 def collisions():
     pass
 
-@app.route("/successfully_landings")
+@app.route("/landings")
 def successfully_landings():
     pass
 
