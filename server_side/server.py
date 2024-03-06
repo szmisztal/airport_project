@@ -351,7 +351,6 @@ class Server:
     def server_work_manager(self):
         """
         Manages the server_side's work, accepts client_side connections, and handles exceptions.
-
         """
         try:
             self.check_server_lifetime()
@@ -388,11 +387,10 @@ class Server:
     def stop(self):
         """
         Stops the server_side, closes client_side connections, and performs cleanup operations.
-
         """
         if len(self.clients_list) > 0:
             for handler in self.clients_list:
-                handler.client_socket.close()
+                handler.is_running = False
         self.database_utils.update_period_end(self.server_connection)
         self.logger.info("Server`s out")
         self.server_socket.close()
@@ -403,5 +401,4 @@ if __name__ == "__main__":
     connection_pool = ConnectionPool(10, 100)
     server = Server(connection_pool)
     radar = Radar(server.airport)
-    if sys.argv[1] == "start":
-        server.start()
+    server.start()
