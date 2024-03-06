@@ -13,7 +13,7 @@ process = None
 def start_airport():
     global process
     server_script_path = f"{os.getcwd()}/server_side/server.py"
-    process = subprocess.Popen(["python", server_script_path, "start"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, text = True)
+    process = subprocess.Popen(["python", server_script_path], stdout = subprocess.PIPE, stderr = subprocess.PIPE, text = True)
     logger.info(f"Started script with PID {process.pid}")
     return jsonify({"message": "Server started", "pid": process.pid})
 
@@ -28,8 +28,9 @@ def close_airport():
         process = None
         return jsonify(response)
     else:
+        response = {"error": "server is not running"}
         logger.info("Server is not running")
-        return jsonify({"error": "server is not running"})
+    return jsonify(response)
 
 @app.route("/pause")
 def pause_airport():
