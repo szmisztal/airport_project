@@ -1,6 +1,7 @@
 import datetime
 import os
 import socket as s
+import sys
 import threading
 from threading import Lock
 from config_variables_for_server_and_client import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, logger_config
@@ -255,13 +256,14 @@ class Server:
         self.PORT = PORT
         self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
         self.SOCKET_TYPE = SOCKET_TYPE
-        self.logger = logger_config("Server", r"C:\Programy\Python\Projekty\airport_project\server_side", "server_logs.log")
+        self.server_socket = None
+        self.logger = logger_config("Server", os.getcwd(), "server_logs.log")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.lock = Lock()
         self.is_running = True
         self.start_date = datetime.datetime.now()
-        self.version = "1.2.2"
+        self.version = "1.2.3"
         self.airport = Airport()
         self.communication_utils = ServerProtocols()
         self.connection_pool = connection_pool
@@ -346,17 +348,15 @@ class Server:
         except OSError as e:
             self.handle_handler_exception(client_handler, e)
 
-    def server_work_manager(self, server_socket):
+    def server_work_manager(self):
         """
         Manages the server_side's work, accepts client_side connections, and handles exceptions.
 
-        Parameters:
-            server_socket (socket): The server_side socket object.
         """
         try:
             self.check_server_lifetime()
-            server_socket.settimeout(0.01)
-            client_socket, address = server_socket.accept()
+            self.server_socket.settimeout(0.01)
+            client_socket, address = self.server_socket.accept()
             self.logger.info(f"Connection from {address}")
             client_socket.settimeout(5)
             client_handler = self.handler_manager(client_socket, address)
@@ -370,32 +370,32 @@ class Server:
         Starts the server_side, initializes necessary services, and handles server_side operations.
         """
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
+            self.server_socket = server_socket
             self.logger.info("Server`s up")
             self.db_service_when_server_starts()
-            server_socket.bind((self.HOST, self.PORT))
-            server_socket.listen()
+            self.server_socket.bind((self.HOST, self.PORT))
+            self.server_socket.listen()
             try:
                 while self.is_running:
                     radar.draw()
-                    self.server_work_manager(server_socket)
+                    self.server_work_manager()
             except OSError as e:
                 self.logger.exception(f"Error in server_side: {e}")
                 self.is_running = False
             finally:
-                self.stop(server_socket)
+                self.stop()
 
-    def stop(self, server_socket):
+    def stop(self):
         """
         Stops the server_side, closes client_side connections, and performs cleanup operations.
 
-        Parameters:
-            server_socket (socket): The server_side socket object.
         """
-        for handler in self.clients_list:
-            handler.stop()
+        if len(self.clients_list) > 0:
+            for handler in self.clients_list:
+                handler.client_socket.close()
         self.database_utils.update_period_end(self.server_connection)
         self.logger.info("Server`s out")
-        server_socket.close()
+        self.server_socket.close()
 
 
 
@@ -403,4 +403,5 @@ if __name__ == "__main__":
     connection_pool = ConnectionPool(10, 100)
     server = Server(connection_pool)
     radar = Radar(server.airport)
-    server.start()
+    if sys.argv[1] == "start":
+        server.start()
