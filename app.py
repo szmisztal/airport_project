@@ -10,43 +10,79 @@ from server_side.database_and_serialization_managment import DatabaseUtils
 
 logger = logger_config("API logger", os.getcwd(), "api_logs.log")
 app = Flask(__name__)
-process = None
 
 
-class APIMethods:
+class API:
     def __init__(self):
+        self.is_running = False
         self.connection = Connection(db_file)
         self.db_utils = DatabaseUtils()
+        self.process = None
+        self.response_when_server_is_not_running = {"error": "server is not running"}
 
-    def start(self):
-        global process
+    def server_start(self):
         server_script_path = f"{os.getcwd()}/server_side/server.py"
-        process = subprocess.Popen(["python", server_script_path], stdout = subprocess.PIPE, stderr = subprocess.PIPE, text = True)
-        logger.info(f"Started script with PID {process.pid}")
-        return process
+        self.process = subprocess.Popen(["python", server_script_path], stdout = subprocess.PIPE, stderr = subprocess.PIPE, text = True)
+        self.is_running = True
+        logger.info(f"Started script with PID {self.process.pid}")
+        return self.process
 
-    def close(self):
-        global process
-        self.connection.connection.close()
-        if process:
-            process.terminate()
-            process.wait()
-            response = {"message": "Server stopped", "pid": process.pid}
-            logger.info(f"Close script with PID {process.pid}")
-            process = None
+    def server_close(self):
+        if self.is_running:
+            self.db_utils.update_period_end(self.connection)
+            self.connection.connection.close()
+            if self.process:
+                self.process.terminate()
+                self.process.wait()
+                response = {"message": "Server stopped", "pid": self.process.pid}
+                logger.info(f"Close script with PID {self.process.pid}")
+                self.process = None
+            else:
+                response = {"error": "server is not running"}
+                logger.info("Server is not running")
+            return response
         else:
-            response = {"error": "server is not running"}
-            logger.info("Server is not running")
-        return response
+            return self.response_when_server_is_not_running
+
+    def server_pause(self):
+        pass
+
+    def server_resume(self):
+        pass
+
+    def server_uptime(self):
+        if self.is_running:
+            date_format = "%Y-%m-%d %H:%M:%S"
+            current_time = dt.datetime.now()
+            server_start_time = self.db_utils.get_last_period_start_date(self.connection)
+            server_uptime = current_time - dt.datetime.strptime(server_start_time, date_format)
+            return str(server_uptime)
+        else:
+            return self.response_when_server_is_not_running
+
+    def number_of_airplanes(self):
+        if self.is_running:
+            all_airplanes = self.db_utils.get_all_airplanes_number_per_period(self.connection)
+            return all_airplanes
+        else:
+            return self.response_when_server_is_not_running
+
+    def airplanes_by_status(self, status):
+        if self.is_running:
+            airplanes_with_specified_status = self.db_utils.get_airplanes_with_specified_status_per_period(self.connection, status)
+            return airplanes_with_specified_status
+        else:
+            return self.response_when_server_is_not_running
+
 
 @app.route("/start")
 def start_airport():
-    process = api.start()
+    process = api.server_start()
     return jsonify({"message": "Server started", "pid": process.pid})
 
 @app.route("/close")
 def close_airport():
-    response = api.close()
+    response = api.server_close()
     return jsonify(response)
 
 @app.route("/pause")
@@ -59,27 +95,30 @@ def restore_airport():
 
 @app.route("/uptime")
 def uptime():
-    date_format = "%Y-%m-%d %H:%M:%S"
-    current_time = str(dt.datetime.now())
-    server_start_time = db.get_last_period_start_date(conn)
-    server_uptime = dt.datetime.strptime(current_time, date_format) - dt.datetime.strptime(server_start_time, date_format)
+    server_uptime = api.server_uptime()
     return jsonify({"server uptime": server_uptime})
 
-@app.route("/count_airplanes")
-def count_airplanes():
-    pass
+@app.route("/airplanes")
+def airplanes():
+    airplanes = api.number_of_airplanes()
+    return jsonify({"all airplanes number": airplanes})
 
 @app.route("/collisions")
 def collisions():
-    pass
+    airplanes_crashed_by_out_of_fuel = api.airplanes_by_status("CRASHED BY OUT OF FUEL")
+    airplanes_crashed_by_collision = api.airplanes_by_status("CRASHED BY COLLISION")
+    return jsonify({"airplanes crashed by out of fuel": airplanes_crashed_by_out_of_fuel,
+                    "airplanes crashed by collision": airplanes_crashed_by_collision})
 
 @app.route("/landings")
 def successfully_landings():
-    pass
+    airplanes_with_successfully_landings = api.airplanes_by_status("SUCCESSFULLY LANDING")
+    return jsonify({"airplanes with successfully landing": airplanes_with_successfully_landings})
 
 @app.route("/airplanes_in_the_air")
 def airplanes_in_the_air():
-    pass
+    planes_in_the_air = api.airplanes_by_status(None)
+    return jsonify({"airplanes in the air": planes_in_the_air})
 
 @app.route("/airplanes/<int:airplane_id>")
 def airplane_detail(id):
@@ -87,5 +126,5 @@ def airplane_detail(id):
 
 
 if __name__ == "__main__":
-    api = APIMethods()
+    api = API()
     app.run(debug = True)
