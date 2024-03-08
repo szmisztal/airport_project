@@ -176,9 +176,25 @@ class DatabaseUtils:
         - str: server start date in string type.
         """
         period_id = self.get_period_id(connection)
-        period_start_date_query = "SELECT period_start FROM server_periods WHERE period_id = ?"
-        period_start_date = self.execute_sql_query(connection, period_start_date_query, (period_id, ), fetch_option = "fetchone")[0]
+        query = "SELECT period_start FROM server_periods WHERE period_id = ?"
+        period_start_date = self.execute_sql_query(connection, query, (period_id, ), fetch_option = "fetchone")[0]
         return period_start_date
+
+    def get_airplanes_with_specified_status_per_period(self, connection, status):
+        """
+        Retrieves airplanes list with specified status - in the air, successfully landed or crashed
+
+        Parameters:
+        - connection: Database connection object.
+        - status: string represents status (or None for NULL).
+
+        Returns:
+        - list: airplane_id with appearance time.
+        """
+        period_id = self.get_period_id(connection)
+        query = "SELECT airplane_id, connection_date FROM connections WHERE period_id = ? AND (status = ? OR status IS NULL)"
+        airplanes_with_status = self.execute_sql_query(connection, query, (period_id, status), fetch_option = "fetchall")
+        return airplanes_with_status
 
     def get_all_airplanes_number_per_period(self, connection):
         """
