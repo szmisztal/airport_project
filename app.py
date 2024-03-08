@@ -29,17 +29,13 @@ class API:
 
     def server_close(self):
         if self.is_running:
+            self.process.terminate()
+            self.process.wait()
+            response = {"message": "Server stopped", "pid": self.process.pid}
+            logger.info(f"Close script with PID {self.process.pid}")
+            self.process = None
             self.db_utils.update_period_end(self.connection)
             self.connection.connection.close()
-            if self.process:
-                self.process.terminate()
-                self.process.wait()
-                response = {"message": "Server stopped", "pid": self.process.pid}
-                logger.info(f"Close script with PID {self.process.pid}")
-                self.process = None
-            else:
-                response = {"error": "server is not running"}
-                logger.info("Server is not running")
             return response
         else:
             return self.response_when_server_is_not_running
