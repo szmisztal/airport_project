@@ -165,6 +165,21 @@ class DatabaseUtils:
         period_id = self.execute_sql_query(connection, period_id_query, fetch_option = "fetchone")[0]
         return int(period_id)
 
+    def get_last_period_start_date(self, connection):
+        """
+        Retrieves the current server start from database.
+
+        Parameters:
+        - connection: Database connection object.
+
+        Returns:
+        - str: server start date in string type.
+        """
+        period_id = self.get_period_id(connection)
+        period_start_date_query = "SELECT period_start FROM server_periods WHERE period_id = ?"
+        period_start_date = self.execute_sql_query(connection, period_start_date_query, (period_id, ), fetch_option = "fetchone")[0]
+        return period_start_date
+
     def get_all_airplanes_number_per_period(self, connection):
         """
         Retrieves the number of airplanes for the current period from the database.
