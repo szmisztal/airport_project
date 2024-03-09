@@ -196,6 +196,12 @@ class DatabaseUtils:
         airplanes_with_status = self.execute_sql_query(connection, query, (period_id, status), fetch_option = "fetchall")
         return airplanes_with_status
 
+    def get_single_airplane_details(self, connection, id):
+        period_id = self.get_period_id(connection)
+        query = "SELECT airplane_id, connection_date, status FROM connections WHERE period_id = ? AND airplane_id = ?"
+        airplane_details = self.execute_sql_query(connection, query, (period_id, id), fetch_option = "fetchone")
+        return airplane_details
+
     def get_all_airplanes_number_per_period(self, connection):
         """
         Retrieves the number of airplanes for the current period from the database.
