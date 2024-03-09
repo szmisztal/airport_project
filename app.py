@@ -70,6 +70,14 @@ class API:
         else:
             return self.response_when_server_is_not_running
 
+    def single_airplane_details(self, id):
+        if self.is_running:
+            airplane_id = f"Airplane_{id}"
+            airplane_details = self.db_utils.get_single_airplane_details(self.connection, airplane_id)
+            return airplane_details
+        else:
+            return self.response_when_server_is_not_running
+
 
 @app.route("/start")
 def start_airport():
@@ -117,8 +125,20 @@ def airplanes_in_the_air():
     return jsonify({"airplanes in the air": planes_in_the_air})
 
 @app.route("/airplanes/<int:airplane_id>")
-def airplane_detail(id):
-    pass
+def airplane_detail(airplane_id):
+    airplane = api.single_airplane_details(airplane_id)
+    if airplane == None:
+        return jsonify({"error": "there is no airplane with this id"})
+    id = airplane[0]
+    airplane_appearance_date = airplane[1]
+    status = airplane[2]
+    if status == None:
+        status = "In the air"
+    return jsonify({"airplane details":
+                        {"id": id,
+                         "appearance_date": airplane_appearance_date,
+                         "status": status}
+                    })
 
 
 if __name__ == "__main__":
