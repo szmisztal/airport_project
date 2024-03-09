@@ -8,13 +8,13 @@ from server_side.database_and_serialization_managment import DatabaseUtils
 
 
 
-logger = logger_config("API logger", os.getcwd(), "api_logs.log")
 app = Flask(__name__)
 
 
 class API:
     def __init__(self):
         self.is_running = False
+        self.logger = logger_config("API logger", os.getcwd(), "api_logs.log")
         self.connection = Connection(db_file)
         self.db_utils = DatabaseUtils()
         self.process = None
@@ -24,7 +24,7 @@ class API:
         server_script_path = f"{os.getcwd()}/server_side/server.py"
         self.process = subprocess.Popen(["python", server_script_path], stdout = subprocess.PIPE, stderr = subprocess.PIPE, text = True)
         self.is_running = True
-        logger.info(f"Started script with PID {self.process.pid}")
+        self.logger.info(f"Started script with PID {self.process.pid}")
         return self.process
 
     def server_close(self):
@@ -32,7 +32,7 @@ class API:
             self.process.terminate()
             self.process.wait()
             response = {"message": "Server stopped", "pid": self.process.pid}
-            logger.info(f"Close script with PID {self.process.pid}")
+            self.logger.info(f"Close script with PID {self.process.pid}")
             self.process = None
             self.db_utils.update_period_end(self.connection)
             self.connection.connection.close()
