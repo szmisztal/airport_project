@@ -197,6 +197,16 @@ class DatabaseUtils:
         return airplanes_with_status
 
     def get_single_airplane_details(self, connection, id):
+        """
+        Retrieves single airplane details.
+
+        Parameters:
+        - connection: Database connection object.
+        - id: airplane id.
+
+        Returns:
+        - airplane_id, airplane_connection_date and status.
+        """
         period_id = self.get_period_id(connection)
         query = "SELECT airplane_id, connection_date, status FROM connections WHERE period_id = ? AND airplane_id = ?"
         airplane_details = self.execute_sql_query(connection, query, (period_id, id), fetch_option = "fetchone")
