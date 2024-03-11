@@ -41,10 +41,27 @@ class API:
             return self.response_when_server_is_not_running
 
     def server_pause(self):
-        pass
+        if self.is_running:
+            path = f"{os.getcwd()}\\server_side\\flag_file.txt"
+            with open(path, "w"):
+                pass
+            response = {"server status": "paused"}
+            return response
+        else:
+            return self.response_when_server_is_not_running
 
     def server_resume(self):
-        pass
+        if self.is_running:
+            path = f"{os.getcwd()}\\server_side\\flag_file.txt"
+            file = os.path.isfile(path)
+            if file:
+                os.remove(path)
+                response = {"server status": "resumed"}
+                return response
+            else:
+                return self.response_when_server_is_not_running
+        else:
+            return self.response_when_server_is_not_running
 
     def server_uptime(self):
         if self.is_running:
@@ -91,11 +108,13 @@ def close_airport():
 
 @app.route("/pause")
 def pause_airport():
-    pass
+    pause_server = api.server_pause()
+    return jsonify(pause_server)
 
 @app.route("/restore")
 def restore_airport():
-    pass
+    resume_server = api.server_resume()
+    return jsonify(resume_server)
 
 @app.route("/uptime")
 def uptime():
