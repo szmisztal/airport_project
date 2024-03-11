@@ -349,6 +349,9 @@ class Server:
             self.handle_handler_exception(client_handler, e)
 
     def check_file_flag_exists(self):
+        """
+        Checks that the flag file exists. If return True, the server will stop, if False, server will works normally.
+        """
         path = f"{os.getcwd()}\\server_side\\flag_file.txt"
         file = os.path.isfile(path)
         return file
