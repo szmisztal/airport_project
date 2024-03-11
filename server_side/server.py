@@ -1,8 +1,8 @@
 import datetime
 import os
 import socket as s
-import sys
 import threading
+import time
 from threading import Lock
 from config_variables_for_server_and_client import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, logger_config
 from server_side.connection_pool import ConnectionPool
@@ -348,6 +348,11 @@ class Server:
         except OSError as e:
             self.handle_handler_exception(client_handler, e)
 
+    def check_file_flag_exists(self):
+        path = f"{os.getcwd()}\\server_side\\flag_file.txt"
+        file = os.path.isfile(path)
+        return file
+
     def server_work_manager(self):
         """
         Manages the server_side's work, accepts client_side connections, and handles exceptions.
@@ -376,8 +381,14 @@ class Server:
             self.server_socket.listen()
             try:
                 while self.is_running:
-                    radar.draw()
-                    self.server_work_manager()
+                    flag_file = self.check_file_flag_exists()
+                    self.logger.info(flag_file)
+                    if flag_file:
+                        self.logger.info("Server paused")
+                        continue
+                    else:
+                        radar.draw()
+                        self.server_work_manager()
             except OSError as e:
                 self.logger.exception(f"Error in server_side: {e}")
                 self.is_running = False
