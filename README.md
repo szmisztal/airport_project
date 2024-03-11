@@ -19,7 +19,7 @@ The project is based on a client-server architecture, operating on sockets, wher
 
 ## System Requirements
 - Python 3.x installed on your machine.
-- Flask, for setting up the API.
+- Flask, for setting up the API, works on localhost.
 - Matplotlib and NumPy, for data visualization and numerical operations.
 
 
