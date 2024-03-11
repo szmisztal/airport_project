@@ -105,3 +105,31 @@ def test_get_all_airplanes_number_per_period(mocker, init_database_utils_obj, mo
     mock_get_all_airplanes.return_value = 10
     all_airplanes = utils.get_all_airplanes_number_per_period(mock_connection)
     assert all_airplanes == 10
+
+def test_get_last_period_start_date(mocker, init_database_utils_obj, mock_connection):
+    utils = init_database_utils_obj
+    mocker.patch.object(utils, "get_period_id", return_value = 1)
+    mocker.patch.object(utils, "execute_sql_query")
+    mock_get_last_period_start_date = mocker.patch.object(utils, "get_last_period_start_date")
+    mock_get_last_period_start_date.return_value = "2024-02-25 12:37:03"
+    start_date = utils.get_last_period_start_date(mock_connection)
+    assert start_date == "2024-02-25 12:37:03"
+
+def test_get_airplanes_with_specified_status_per_period(mocker, init_database_utils_obj, mock_connection):
+    utils = init_database_utils_obj
+    mocker.patch.object(utils, "get_period_id", return_value = 1)
+    mocker.patch.object(utils, "execute_sql_query")
+    mock_airplanes_with_status = mocker.patch.object(utils, "get_airplanes_with_specified_status_per_period")
+    mock_airplanes_with_status.return_value = [("Airplane_1", "2024-02-25 12:37:03"), ("Airplane_2", "2024-02-26 12:37:03")]
+    airplanes_with_status = utils.get_airplanes_with_specified_status_per_period(mock_connection, "CRASHED")
+    assert airplanes_with_status == [("Airplane_1", "2024-02-25 12:37:03"), ("Airplane_2", "2024-02-26 12:37:03")]
+    assert len(airplanes_with_status) == 2
+
+def test_get_single_airplane_details(mocker, init_database_utils_obj, mock_connection):
+    utils = init_database_utils_obj
+    mocker.patch.object(utils, "get_period_id", return_value = 1)
+    mocker.patch.object(utils, "execute_sql_query")
+    mock_airplane = mocker.patch.object(utils, "get_single_airplane_details")
+    mock_airplane.return_value = ("Airplane_1", "2024-02-25 12:37:03", "IN THE AIR")
+    airplane = utils.get_single_airplane_details(mock_connection, 1)
+    assert airplane == ("Airplane_1", "2024-02-25 12:37:03", "IN THE AIR")
