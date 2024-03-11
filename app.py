@@ -59,7 +59,7 @@ class API:
         self.process = None
         self.db_utils.update_period_end(self.connection)
         self.connection.connection.close()
-        return {"message": "Server stopped", "pid": self.process.pid}
+        return {"message": "Server stopped"}
 
     def server_pause(self):
         """
@@ -253,7 +253,7 @@ def successful_landings():
     else:
         return jsonify({"error": "server is not running"}), 400
 
-@app.route("/airplanes_in_the_air", methods = ["GET"])
+@app.route("/in_the_air", methods = ["GET"])
 def airplanes_in_the_air():
     """
     Retrieves the list of airplanes that are currently in the air.
