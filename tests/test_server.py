@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import pytest
 import socket as s
 from server_side.server import Server, ClientHandler
@@ -24,7 +25,7 @@ def mock_socket(mocker):
 def init_client_handler(init_server, mock_socket, mocker, mock_connection_pool):
     server = init_server
     connection_pool = mock_connection_pool
-    client_handler = ClientHandler(server, mock_socket, ("127.0.0.1", 65433), 10, connection_pool)
+    client_handler = ClientHandler(server, mock_socket, ("127.0.0.1", 65433), 10)
     client_handler.connection = mocker.Mock()
     return client_handler
 
@@ -83,6 +84,17 @@ def test_server_init(init_server):
     assert server.INTERNET_ADDRESS_FAMILY == s.AF_INET
     assert server.SOCKET_TYPE == s.SOCK_STREAM
     assert server.is_running == True
-    assert server.version == "1.2.2"
+    assert server.version == "1.2.3"
     assert len(server.clients_list) == 0
 
+def test_check_file_flag_exists(init_server):
+    server = init_server
+    with patch("server_side.server.os.path.isfile") as mocked_isfile:
+        mocked_isfile.return_value = True
+        assert server.check_file_flag_exists() is True
+
+def test_check_file_flag_not_exists(init_server):
+    server = init_server
+    with patch("server_side.server.os.path.isfile") as mocked_isfile:
+        mocked_isfile.return_value = False
+        assert server.check_file_flag_exists() is False
