@@ -1,4 +1,4 @@
-from unittest.mock import patch
+import os
 import pytest
 import socket as s
 from server_side.server import Server, ClientHandler
@@ -87,14 +87,16 @@ def test_server_init(init_server):
     assert server.version == "1.2.3"
     assert len(server.clients_list) == 0
 
-def test_check_file_flag_exists(init_server):
+def test_check_file_flag_exsits(mocker, init_server):
     server = init_server
-    with patch("server_side.server.os.path.isfile") as mocked_isfile:
-        mocked_isfile.return_value = True
-        assert server.check_file_flag_exists() is True
+    mock_os_path_is_file = mocker.patch.object(os.path, "isfile")
+    mock_os_path_is_file.return_value = True
+    check_file_flag_not_exists = server.check_file_flag_exists()
+    assert check_file_flag_not_exists == True
 
-def test_check_file_flag_not_exists(init_server):
+def test_check_file_flag_not_exsits(init_server, mocker):
     server = init_server
-    with patch("server_side.server.os.path.isfile") as mocked_isfile:
-        mocked_isfile.return_value = False
-        assert server.check_file_flag_exists() is False
+    mock_os_path_is_file = mocker.patch.object(os.path, "isfile")
+    mock_os_path_is_file.return_value = False
+    check_file_flag_not_exists = server.check_file_flag_exists()
+    assert check_file_flag_not_exists == False
