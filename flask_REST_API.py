@@ -27,7 +27,6 @@ class API:
         """
         Initializes the API class with default values and configurations.
         """
-        self.is_running = False
         self.logger = logger_config("Flask API logger", os.getcwd(), "flask_api_logs.log")
         self.connection = Connection(db_file)
         self.db_utils = DatabaseUtils()
@@ -42,7 +41,6 @@ class API:
         """
         server_script_path = f"{os.getcwd()}/server_side/server.py"
         self.process = subprocess.Popen(["python", server_script_path], stdout = subprocess.PIPE, stderr = subprocess.PIPE, text = True)
-        self.is_running = True
         self.logger.info(f"Started script with PID {self.process.pid}")
         return self.process
 
@@ -147,8 +145,11 @@ def start_airport():
     Returns:
         JSON response indicating that the server has started and its PID.
     """
-    process = api.server_start()
-    return jsonify({"message": "Server started", "pid": process.pid}), 200
+    if api.process is None:
+        process = api.server_start()
+        return jsonify({"message": "Server started", "pid": process.pid}), 200
+    else:
+        return jsonify({"error": "server is running"}), 400
 
 @app.route("/close", methods = ["GET"])
 def close_airport():
@@ -158,7 +159,7 @@ def close_airport():
     Returns:
         JSON response indicating that the server has stopped.
     """
-    if api.is_running:
+    if api.process is not None:
         response = api.server_close()
         return jsonify(response), 200
     else:
@@ -172,7 +173,7 @@ def pause_airport():
     Returns:
         JSON response indicating that the server is paused.
     """
-    if api.is_running:
+    if api.process is not None:
         response = api.server_pause()
         return jsonify(response), 200
     else:
@@ -186,7 +187,7 @@ def restore_airport():
     Returns:
         JSON response indicating that the server operations have been resumed.
     """
-    if api.is_running:
+    if api.process is not None:
         resume_server = api.server_resume()
         if resume_server is None:
             return jsonify({"error": "server is working right now"}), 400
@@ -203,7 +204,7 @@ def uptime():
     Returns:
         JSON response with the server uptime duration.
     """
-    if api.is_running:
+    if api.process is not None:
         server_uptime = api.server_uptime()
         return jsonify({"server uptime": server_uptime}), 200
     else:
@@ -217,7 +218,7 @@ def airplanes():
     Returns:
         JSON response with the total number of airplanes.
     """
-    if api.is_running:
+    if api.process is not None:
         airplanes = api.number_of_airplanes()
         return jsonify({"all airplanes number": airplanes}), 200
     else:
@@ -231,7 +232,7 @@ def collisions():
     Returns:
         JSON response with the list of airplanes crashed by running out of fuel and by collision.
     """
-    if api.is_running:
+    if api.process is not None:
         airplanes_crashed_by_out_of_fuel = api.airplanes_by_status("CRASHED BY OUT OF FUEL")
         airplanes_crashed_by_collision = api.airplanes_by_status("CRASHED BY COLLISION")
         return jsonify({"airplanes crashed by out of fuel": airplanes_crashed_by_out_of_fuel,
@@ -247,7 +248,7 @@ def successful_landings():
     Returns:
         JSON response with the list of airplanes that had a successful landing.
     """
-    if api.is_running:
+    if api.process is not None:
         airplanes_with_successfully_landings = api.airplanes_by_status("SUCCESSFULLY LANDING")
         return jsonify({"airplanes with successfully landing": airplanes_with_successfully_landings}), 200
     else:
@@ -261,7 +262,7 @@ def airplanes_in_the_air():
     Returns:
         JSON response with the list of airplanes that are in the air.
     """
-    if api.is_running:
+    if api.process is not None:
         planes_in_the_air = api.airplanes_by_status(None)
         return jsonify({"airplanes in the air": planes_in_the_air}), 200
     else:
@@ -278,7 +279,7 @@ def airplane_detail(airplane_id):
     Returns:
         JSON response with the details of the specified airplane or an error message if the airplane ID does not exist.
     """
-    if api.is_running:
+    if api.process is not None:
         airplane = api.single_airplane_details(airplane_id)
         if airplane == None:
             return jsonify({"error": "there is no airplane with this id"}), 404
