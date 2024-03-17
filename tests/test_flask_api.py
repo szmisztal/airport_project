@@ -1,5 +1,5 @@
 import pytest
-from flask_API import app, API, start_airport, close_airport, pause_airport, restore_airport, uptime, airplanes, \
+from flask_REST_API import app, API, start_airport, close_airport, pause_airport, restore_airport, uptime, airplanes, \
     collisions, successful_landings, airplanes_in_the_air, airplane_detail
 
 
