@@ -28,7 +28,7 @@ class API:
         Initializes the API class with default values and configurations.
         """
         self.is_running = False
-        self.logger = logger_config("API logger", os.getcwd(), "api_logs.log")
+        self.logger = logger_config("Flask API logger", os.getcwd(), "flask_api_logs.log")
         self.connection = Connection(db_file)
         self.db_utils = DatabaseUtils()
         self.process = None
