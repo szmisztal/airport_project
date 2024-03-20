@@ -16,7 +16,6 @@ class API:
     A class to control and interact with a server that processes and manages airplane data.
 
     Attributes:
-        is_running (bool): Flag indicating whether the server is running.
         logger (Logger): Logger object to log information and errors.
         connection (Connection): Connection object to interact with the database.
         db_utils (DatabaseUtils): Utility object for database operations.
