@@ -5,7 +5,7 @@ The project is based on a client-server architecture, operating on sockets, wher
 
 To enhance the interactivity and functionality of the system, an API using the Flask framework was implemented. This API facilitates remote management of the server and monitoring of the airport's status, offering new avenues for further development and integration.
 
-In addition to the Flask-based API, an RPC (Remote Procedure Call) API has also been integrated into the project. This RPC API expands the project's capabilities by allowing for more direct and flexible interaction with the airport server. Through this API, users can execute a variety of administrative commands and queries, such as starting or stopping the server, pausing and resuming operations, and fetching real-time data about the airport's status and the airplanes. This addition not only enhances the manageability of the airport simulation but also opens up possibilities for more complex interactions and integrations in the future.
+In addition to the Flask-based API, an RPC (Remote Procedure Call) API has also been integrated into the project. This RPC API expands the project's capabilities by allowing for more direct and flexible interaction with the airport server. Through this API, users can execute a variety of administrative commands and queries, such as starting or stopping the server, pausing and resuming operations, and fetching real-time data about the airport's status and the airplanes.
 
 ## Features
 - **Real-time Simulation:** Experience the dynamic operation of an airport with live updates and interactions between the server (airport) and clients (airplanes).
