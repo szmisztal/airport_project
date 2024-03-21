@@ -1,7 +1,11 @@
 # Airport Project
 
 ## Project Description
-The project is based on a client-server architecture, operating on sockets, where the server represents an airport, and each connecting client represents an airplane. The application operates automatically, simulating the operation of an airport. The server sends commands to clients based on their position and distance, directing them towards a safe landing. Every connection, collision between airplanes, and successful landing is recorded in a database. Visualization of airport traffic is implemented using the matplotlib library. Additionally, to facilitate interaction with the system and expand its functionality, an API using the Flask framework was implemented. This API allows for remote management of the server and monitoring of the airport's status, opening up new possibilities for further development and integration of the project.
+The project is based on a client-server architecture, operating on sockets, where the server represents an airport, and each connecting client represents an airplane. The application operates automatically, simulating the operation of an airport. The server sends commands to clients based on their position and distance, directing them towards a safe landing. Every connection, collision between airplanes, and successful landing is recorded in a database. Visualization of airport traffic is implemented using the matplotlib library.
+
+To enhance the interactivity and functionality of the system, an API using the Flask framework was implemented. This API facilitates remote management of the server and monitoring of the airport's status, offering new avenues for further development and integration.
+
+In addition to the Flask-based API, an RPC (Remote Procedure Call) API has also been integrated into the project. This RPC API expands the project's capabilities by allowing for more direct and flexible interaction with the airport server. Through this API, users can execute a variety of administrative commands and queries, such as starting or stopping the server, pausing and resuming operations, and fetching real-time data about the airport's status and the airplanes. This addition not only enhances the manageability of the airport simulation but also opens up possibilities for more complex interactions and integrations in the future.
 
 ## Features
 - **Real-time Simulation:** Experience the dynamic operation of an airport with live updates and interactions between the server (airport) and clients (airplanes).
