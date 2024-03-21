@@ -13,6 +13,12 @@ connection = Connection(db_file)
 process = None
 
 def establish_server_script_file_dir():
+    """
+    Establishes the directory path for the server script file.
+
+    Returns:
+        str: The absolute path to the server script directory.
+    """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
     server_script_path = os.path.join(parent_dir, "server_side")
@@ -21,6 +27,13 @@ def establish_server_script_file_dir():
 
 @method
 def server_start():
+    """
+    Starts the server process if it is not already running.
+
+    Returns:
+        Success: A success message including the PID of the started process.
+        Error: An error message if the server is already running.
+    """
     global process
     if process is None:
         server_script_dir = establish_server_script_file_dir()
@@ -32,6 +45,13 @@ def server_start():
 
 @method
 def server_close():
+    """
+    Terminates the server process if it is running, updates the database, and closes the connection.
+
+    Returns:
+        Success: A success message including the PID of the stopped process.
+        Error: An error message if the server is not running.
+    """
     if process is not None:
         process.terminate()
         process.wait()
@@ -44,6 +64,13 @@ def server_close():
 
 @method
 def server_pause():
+    """
+    Pauses the server process by creating a flag file, indicating that the server is paused.
+
+    Returns:
+        Success: A success message indicating that the server is paused.
+        Error: An error message if the server is not running.
+    """
     if process is not None:
         path = establish_server_script_file_dir()
         with open(f"{path}\\flag_file.txt", "w"):
@@ -54,6 +81,13 @@ def server_pause():
 
 @method
 def server_resume():
+    """
+    Resumes the server process by removing the flag file if it exists, indicating that the server is resumed.
+
+    Returns:
+        Success: A success message indicating that the server is resumed.
+        Error: An error message if the flag file does not exist or the server is not running.
+    """
     if process is not None:
         server_script_dir = establish_server_script_file_dir()
         path = f"{server_script_dir}\\flag_file.txt"
@@ -68,6 +102,13 @@ def server_resume():
 
 @method
 def server_uptime():
+    """
+    Calculates and returns the uptime of the server.
+
+    Returns:
+        Success: A success message with the server's uptime.
+        Error: An error message if the server is not running.
+    """
     if process is not None:
         date_format = "%Y-%m-%d %H:%M:%S"
         current_time = dt.datetime.now()
@@ -79,6 +120,13 @@ def server_uptime():
 
 @method
 def number_of_airplanes():
+    """
+    Retrieves the number of airplanes processed during the current period.
+
+    Returns:
+        Success: A success message with the number of airplanes.
+        Error: An error message if the server is not running.
+    """
     if process is not None:
         all_airplanes = db_utils.get_all_airplanes_number_per_period(connection)
         return Success({"airplanes number": all_airplanes})
@@ -87,6 +135,16 @@ def number_of_airplanes():
 
 @method
 def airplanes_by_status(status):
+    """
+    Retrieves the number of airplanes with a specified status.
+
+    Args:
+        status (str): The status to filter the airplanes by.
+
+    Returns:
+        Success: A success message with the list of airplanes with the specified status.
+        Error: An error message if the server is not running.
+    """
     if process is not None:
         airplanes_with_specified_status = db_utils.get_airplanes_with_specified_status_per_period(connection, status)
         return Success({f"airplanes {status}": airplanes_with_specified_status})
@@ -95,6 +153,16 @@ def airplanes_by_status(status):
 
 @method
 def single_airplane_details(id):
+    """
+    Retrieves details for a single airplane based on its ID.
+
+    Args:
+        id (int): The ID of the airplane.
+
+    Returns:
+        Success: A success message with the airplane details.
+        Error: An error message if the airplane with the specified ID is not found or the server is not running.
+    """
     if process is not None:
         airplane_id = f"Airplane_{id}"
         airplane_details = db_utils.get_single_airplane_details(connection, airplane_id)
