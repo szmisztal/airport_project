@@ -2,7 +2,7 @@ import os
 import subprocess
 import datetime as dt
 from flask import Flask, jsonify
-from config_variables_for_server_and_client import logger_config, db_file
+from config_variables import logger_config, db_file
 from server_side.connection_pool import Connection
 from server_side.database_and_serialization_managment import DatabaseUtils
 

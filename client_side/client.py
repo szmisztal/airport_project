@@ -3,7 +3,7 @@ import os
 import selectors
 import socket as s
 import time
-from config_variables_for_server_and_client import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, logger_config
+from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, logger_config
 from server_side.database_and_serialization_managment import SerializeUtils
 from client_side.airplane import Airplane
 from client_side.client_messages import ClientProtocols

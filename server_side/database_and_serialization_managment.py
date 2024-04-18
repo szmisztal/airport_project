@@ -1,6 +1,6 @@
 import json
 from sqlite3 import Error
-from config_variables_for_server_and_client import encode_format
+from config_variables import encode_format
 
 
 class SerializeUtils:
