@@ -56,7 +56,7 @@ class Client:
         """
         message_from_server_json = client_socket.recv(self.BUFFER)
         deserialized_message = self.serialize_utils.deserialize_json(message_from_server_json)
-        logging.info(f"Client_{self.airplane.id} message from server: >{deserialized_message['message']} {deserialized_message['body']}<")
+        self.logger.info(f"Client_{self.airplane.id} message from server: >{deserialized_message['message']} {deserialized_message['body']}<")
         return deserialized_message
 
     def send_message_to_server(self, client_socket, data):
