@@ -1,35 +1,15 @@
-class CommunicationUtils:
-    """
-    A class containing utility method for communication protocols.
-    """
-
-    def protocol_template(self, message = None, body = None, **kwargs):
-        """
-        Generates a communication protocol template.
-
-        Parameters:
-        - message (str): The message to be included in the protocol template.
-        - body (str): The body content of the protocol template.
-        - **kwargs: Additional key-value pairs to be included in the protocol template.
-
-        Returns:
-        dict: A dictionary representing the communication protocol template.
-        """
-        template = {
-            "message": message,
-            "body": body,
-            **kwargs
-        }
-        return template
+from common.message_template import MessageTemplate
 
 
-class ServerProtocols(CommunicationUtils):
+class ServerProtocols(MessageTemplate):
     """
     A class representing server_side-specific communication protocols.
 
     Inherits:
-    - CommunicationUtils: Base class providing utility method for communication protocols.
+    - MessageTemplate: Base class providing utility method for communication protocols.
     """
+    def __init__(self):
+        super().__init__()
 
     def airport_is_full_message(self):
         """
@@ -38,16 +18,18 @@ class ServerProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template indicating that the airport is full and the client_side needs to fly to another location.
         """
-        return self.protocol_template(message = "Airport`s full: ", body = "You have to fly to another...")
+        return self.protocol_template(status = self.status["error_status"], message = "Airport`s full, you have to fly to another...")
 
 
-class HandlerProtocols(CommunicationUtils):
+class HandlerProtocols(MessageTemplate):
     """
     A class representing handler-specific communication protocols.
 
     Inherits:
-    - CommunicationUtils: Base class providing utility method for communication protocols.
+    - MessageTemplate: Base class providing utility method for communication protocols.
     """
+    def __init__(self):
+        super().__init__()
 
     def welcome_message_to_client(self, id):
         """
@@ -59,26 +41,29 @@ class HandlerProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template welcoming the client_side and requesting their coordinates.
         """
-        return self.protocol_template(message = "Welcome to our airport !", body = "Submit your coordinates", id = id)
+        return self.protocol_template(status = self.status["success_status"] , message = "Welcome to our airport !", data = id)
 
-    def points_for_airplane_message(self, quarter, init_point_coordinates, waiting_point_coordinates, zero_point_coordinates):
+    def points_for_airplane_message(self, quarter, init_landing_point_coordinates, waiting_point_coordinates, zero_point_coordinates):
         """
         Generates a message containing points for airplane movement.
 
         Parameters:
         - quarter (str): The quarter where the airplane is located.
-        - init_point_coordinates (dict): Initial landing point coordinates.
+        - init_landing_point_coordinates (dict): Initial landing point coordinates.
         - waiting_point_coordinates (dict): Waiting point coordinates.
         - zero_point_coordinates (dict): Zero point coordinates.
 
         Returns:
         dict: A communication protocol template providing points for airplane movement.
         """
-        return self.protocol_template(message = "Your quarter: ",
-                                      body = quarter,
-                                      init_point_coordinates = init_point_coordinates,
-                                      waiting_point_coordinates = waiting_point_coordinates,
-                                      zero_point_coordinates = zero_point_coordinates)
+        return self.protocol_template(status = self.status["success_status"],
+                                      message = "Your coordinates points: ",
+                                      data = {
+                                          "quarter": quarter,
+                                          "init_landing_point_coordinates": init_landing_point_coordinates,
+                                          "waiting_point_coordinates": waiting_point_coordinates,
+                                          "zero_point_coordinates": zero_point_coordinates
+                                      })
 
     def direct_airplane_message(self, target):
         """
@@ -90,7 +75,7 @@ class HandlerProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template instructing the airplane to fly to a specific target.
         """
-        return self.protocol_template(message = "Fly to: ", body = target)
+        return self.protocol_template(status = self.status["success_status"], message = "Fly to: ", data = target)
 
     def avoid_collision_message(self):
         """
@@ -99,7 +84,7 @@ class HandlerProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template advising the airplane to correct its flight path to avoid collision.
         """
-        return self.protocol_template(message = "You`re to close to another airplane !", body = "Correct your flight")
+        return self.protocol_template(status = self.status["error_status"], message = "You`re to close to another airplane ! Correct your flight.")
 
     def collision_message(self):
         """
@@ -108,4 +93,4 @@ class HandlerProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template indicating that a collision has occurred and the airplane is destroyed.
         """
-        return self.protocol_template(message = "Crash !", body = "R.I.P.")
+        return self.protocol_template(status = self.status["error_status"], message = "Crash !...")

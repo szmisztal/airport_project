@@ -1,13 +1,15 @@
-from server_side.server_messages import CommunicationUtils
+from common.message_template import MessageTemplate
 
 
-class ClientProtocols(CommunicationUtils):
+class ClientProtocols(MessageTemplate):
     """
     A class representing client_side-specific communication protocols.
 
     Inherits:
-    - CommunicationUtils: Base class providing utility method for communication protocols.
+    - MessageTemplate: Base class providing utility method for communication protocols.
     """
+    def __init__(self):
+        super().__init__()
 
     def airplane_coordinates_message(self, coordinates):
         """
@@ -19,7 +21,7 @@ class ClientProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template indicating the airplane's coordinates.
         """
-        return self.protocol_template(message = "Our coordinates: ", body = coordinates)
+        return self.protocol_template(status = self.status["success_status"], message = "Our coordinates: ", data = coordinates)
 
     def message_with_airplane_object(self, object):
         """
@@ -31,7 +33,7 @@ class ClientProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template containing airplane data.
         """
-        return self.protocol_template(message = "Our data: ", body = object)
+        return self.protocol_template(status = self.status["success_status"], message = "Our data: ", data = object)
 
     def reaching_the_target_message(self, target):
         """
@@ -43,7 +45,7 @@ class ClientProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template indicating the airplane has reached the target.
         """
-        return self.protocol_template(message = "We reached the target: ", body = target)
+        return self.protocol_template(status = self.status["success_status"], message = "We reached the target: ", data = target)
 
     def successfully_landing_message(self):
         """
@@ -52,7 +54,7 @@ class ClientProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template indicating successful airplane landing.
         """
-        return self.protocol_template(message = "Successfully landing", body = "Goodbye !")
+        return self.protocol_template(status = self.status["success_status"], message = "We was successfully landed")
 
     def out_of_fuel_message(self):
         """
@@ -61,7 +63,7 @@ class ClientProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template indicating the airplane is out of fuel.
         """
-        return self.protocol_template(message = "Out of fuel !", body = "We`re falling...")
+        return self.protocol_template(status = self.status["error_status"], message = "Out of fuel ! We`re falling...")
 
     def crash_message(self):
         """
@@ -70,4 +72,4 @@ class ClientProtocols(CommunicationUtils):
         Returns:
         dict: A communication protocol template indicating a crash has occurred.
         """
-        return self.protocol_template(message = "Crash !", body = "Bye, bye...")
+        return self.protocol_template(status = self.status["error_status"], message = "Crash ! Bye, bye...")

@@ -99,7 +99,7 @@ class ClientHandler(threading.Thread):
             dict: The coordinates received from the client_side.
         """
         coordinates_json = self.client_socket.recv(self.BUFFER)
-        coordinates = self.serialize_utils.deserialize_json(coordinates_json)["body"]
+        coordinates = self.serialize_utils.deserialize_json(coordinates_json)["data"]
         return coordinates
 
     def establish_all_service_points_coordinates_for_airplane(self, coordinates):
@@ -129,7 +129,7 @@ class ClientHandler(threading.Thread):
         coordinates = self.response_from_client_with_coordinates()
         self.establish_all_service_points_coordinates_for_airplane(coordinates)
         airplane_object = self.read_message_from_client(client_socket)
-        self.airplane_object = airplane_object["body"]
+        self.airplane_object = airplane_object["data"]
         self.send_message_to_client(self.communication_utils.direct_airplane_message("Initial landing point"))
 
     def check_possible_collisions(self):
@@ -152,7 +152,7 @@ class ClientHandler(threading.Thread):
         Parameters:
             response_from_client (dict): The response received from the client_side.
         """
-        coordinates = [response_from_client["body"]["x"], response_from_client["body"]["y"], response_from_client["body"]["z"]]
+        coordinates = [response_from_client["data"]["x"], response_from_client["data"]["y"], response_from_client["data"]["z"]]
         self.airplane_object[self.airplane_key]["coordinates"] = coordinates
         self.check_possible_collisions()
         self.server.airport.airplanes_list.update(self.airplane_object)
@@ -178,18 +178,18 @@ class ClientHandler(threading.Thread):
             response_from_client (dict): The response received from the client_side.
         """
         air_corridor = getattr(self.server.airport, "air_corridor")[self.airplane_object[self.airplane_key]["quarter"][0]]
-        if "We reached the target: " in response_from_client["message"] and "Initial landing point" in response_from_client["body"]:
+        if "We reached the target: " in response_from_client["message"] and "Initial landing point" in response_from_client["data"]:
             if air_corridor.occupied == True:
                 self.send_message_to_client(self.communication_utils.direct_airplane_message("Waiting point"))
             else:
                 self.send_message_to_client(self.communication_utils.direct_airplane_message("Zero point"))
                 air_corridor.occupied = True
-        elif "Successfully landing" in response_from_client["message"] and "Goodbye !" in response_from_client["body"]:
+        elif "We was successfully landed" in response_from_client["message"]:
             air_corridor.occupied = False
             self.delete_airplane_from_list_and_save_status_to_db("SUCCESSFULLY LANDING")
-        elif "Out of fuel !" in response_from_client["message"] and "We`re falling..." in response_from_client["body"]:
+        elif "Out of fuel ! We`re falling..." in response_from_client["message"]:
             self.delete_airplane_from_list_and_save_status_to_db("CRASHED BY OUT OF FUEL")
-        elif "Crash !" in response_from_client["message"] and "Bye, bye..." in response_from_client["body"]:
+        elif "Crash ! Bye, bye..." in response_from_client["message"]:
             self.delete_airplane_from_list_and_save_status_to_db("CRASHED BY COLLISION")
         else:
             self.update_airplane_coordinates(response_from_client)
@@ -373,7 +373,7 @@ class Server:
         except client_socket.timeout as e:
             self.handle_handler_exception(client_handler, e)
 
-    def start(self):
+    def main(self):
         """
         Starts the server_side, initializes necessary services, and handles server_side operations.
         """
@@ -416,4 +416,4 @@ if __name__ == "__main__":
     connection_pool = ConnectionPool(10, 100)
     server = Server(connection_pool)
     radar = Radar(server.airport)
-    server.start()
+    server.main()

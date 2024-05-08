@@ -82,10 +82,10 @@ class Airplane:
         - points: A dictionary containing the points of the airplane, including the quarter, initial landing point,
                   waiting point, and zero point coordinates.
         """
-        self.quarter = points["body"]
-        self.initial_landing_point = points["init_point_coordinates"]
-        self.waiting_point = points["waiting_point_coordinates"]
-        self.zero_point = points["zero_point_coordinates"]
+        self.quarter = points["data"]["quarter"]
+        self.initial_landing_point = points["data"]["init_landing_point_coordinates"]
+        self.waiting_point = points["data"]["waiting_point_coordinates"]
+        self.zero_point = points["data"]["zero_point_coordinates"]
 
     def fuel_consumption(self):
         """
@@ -158,9 +158,9 @@ class Airplane:
             self.client.send_message_to_server(client_socket, self.client.communication_utils.reaching_the_target_message("Initial landing point"))
             order_from_server = self.client.read_message_from_server(client_socket)
             self.fly_to_initial_landing_point = False
-            if "Waiting point" in order_from_server["body"]:
+            if "Waiting point" in order_from_server["data"]:
                 self.fly_to_waiting_point = True
-            elif "Zero point" in order_from_server["body"]:
+            elif "Zero point" in order_from_server["data"]:
                 self.fly_to_runaway = True
                 self.speed = 75
 

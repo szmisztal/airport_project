@@ -56,7 +56,7 @@ class Client:
         """
         message_from_server_json = client_socket.recv(self.BUFFER)
         deserialized_message = self.serialize_utils.deserialize_json(message_from_server_json)
-        self.logger.info(f"Client_{self.airplane.id} message from server: >{deserialized_message['message']} {deserialized_message['body']}<")
+        self.logger.info(f"Client_{self.airplane.id} message from server: >{deserialized_message}<")
         return deserialized_message
 
     def send_message_to_server(self, client_socket, data):
@@ -78,10 +78,10 @@ class Client:
         - client_socket (socket): The client_side socket.
         """
         server_response = self.read_message_from_server(client_socket)
-        if "Airport`s full: " in server_response["message"] and "You have to fly to another..." in server_response["body"]:
+        if "Airport`s full, you have to fly to another..." in server_response["message"]:
             self.stop(client_socket)
         else:
-            self.airplane.id = server_response["id"]
+            self.airplane.id = server_response["data"]
             self.send_airplane_coordinates(client_socket, 0)
             self.establish_initial_airplane_points(client_socket)
             self.send_airplane_obj_to_server(client_socket)
@@ -136,7 +136,7 @@ class Client:
                 if key.data is None:
                     server_message_json = key.fileobj.recv(self.BUFFER)
                     server_message = self.serialize_utils.deserialize_json(server_message_json)
-                    print(f">>> {server_message['message']} {server_message['body']}.")
+                    self.logger.info(f"Client_{self.airplane.id} message from server: >{server_message}<")
                     return server_message
 
     def handling_additional_messages_from_server(self, client_socket):
@@ -148,13 +148,13 @@ class Client:
         """
         event_message = self.check_additional_messages_from_server()
         if event_message is not None:
-            if "You`re to close to another airplane !" in event_message["message"] and "Correct your flight" in event_message["body"]:
+            if "You`re to close to another airplane ! Correct your flight." in event_message["message"]:
                 self.airplane.avoid_collision(100)
-            elif "Crash !" in event_message["message"] and "R.I.P." in event_message["body"]:
+            elif "Crash !..." in event_message["message"]:
                 self.send_message_to_server(client_socket, self.communication_utils.crash_message())
                 self.is_running = False
 
-    def start(self):
+    def main(self):
         """
         Starts the client_side by establishing a connection with the server_side and handling messages.
 
@@ -199,4 +199,4 @@ class Client:
 
 if __name__ == "__main__":
     client = Client()
-    client.start()
+    client.main()
