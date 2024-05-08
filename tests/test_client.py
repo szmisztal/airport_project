@@ -2,7 +2,7 @@ import pytest
 import socket as s
 from client_side.client import Client
 from client_side.airplane import Airplane
-from server_side.database_and_serialization_managment import SerializeUtils
+from server_side.database_managment import SerializeUtils
 
 
 @pytest.fixture

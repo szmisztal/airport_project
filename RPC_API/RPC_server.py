@@ -2,8 +2,9 @@ import os
 import subprocess
 import datetime as dt
 from jsonrpcserver import serve, method, Success, Error
-from config_variables import logger_config, db_file
-from server_side.database_and_serialization_managment import DatabaseUtils
+from common.config_variables import db_file
+from common.logger_config import logger_config
+from server_side.database_managment import DatabaseUtils
 from server_side.connection_pool import Connection
 
 

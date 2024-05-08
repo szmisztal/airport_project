@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from server_side.math_calculation import euclidean_formula
+from common.math_calculation import euclidean_formula
 
 
 class Airport:

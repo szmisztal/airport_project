@@ -3,11 +3,13 @@ import os
 import socket as s
 import threading
 from threading import Lock
-from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, logger_config
-from server_side.connection_pool import ConnectionPool
-from server_side.database_and_serialization_managment import SerializeUtils, DatabaseUtils
-from server_side.server_messages import ServerProtocols, HandlerProtocols
-from server_side.airport import Airport, Radar
+from common.config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
+from common.logger_config import logger_config
+from common.serialization_utils import SerializeUtils
+from connection_pool import ConnectionPool
+from database_managment import DatabaseUtils
+from server_messages import ServerProtocols, HandlerProtocols
+from airport import Airport, Radar
 
 
 class ClientHandler(threading.Thread):
@@ -262,7 +264,7 @@ class Server:
         self.lock = Lock()
         self.is_running = True
         self.start_date = datetime.datetime.now()
-        self.version = "1.2.3"
+        self.version = "1.3.0"
         self.airport = Airport()
         self.communication_utils = ServerProtocols()
         self.connection_pool = connection_pool

@@ -1,9 +1,9 @@
-from threading import Lock
 import schedule
 import sqlite3
+from threading import Lock
 from sqlite3 import Error
-from server_side.database_and_serialization_managment import SerializeUtils
-from config_variables import db_file
+from common.serialization_utils import SerializeUtils
+from common.config_variables import db_file
 
 
 class Connection:
