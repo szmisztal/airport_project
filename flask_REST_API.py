@@ -2,7 +2,7 @@ import os
 import subprocess
 import datetime as dt
 from flask import Flask, jsonify
-from common.config_variables import db_file
+from common.config_variables import db_file, log_file
 from common.logger_config import logger_config
 from server_side.connection_pool import Connection
 from server_side.database_managment import DatabaseUtils
@@ -27,7 +27,7 @@ class API:
         """
         Initializes the API class with default values and configurations.
         """
-        self.logger = logger_config("Flask API logger", os.getcwd(), "flask_api_logs.log")
+        self.logger = logger_config("Flask API logger", log_file, "flask_api_logs.log")
         self.connection = Connection(db_file)
         self.db_utils = DatabaseUtils()
         self.process = None

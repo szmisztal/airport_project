@@ -3,7 +3,7 @@ import os
 import socket as s
 import threading
 from threading import Lock
-from common.config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
+from common.config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, log_file
 from common.logger_config import logger_config
 from common.serialization_utils import SerializeUtils
 from connection_pool import ConnectionPool
@@ -48,7 +48,7 @@ class ClientHandler(threading.Thread):
         self.thread_id = thread_id
         self.connection = self.server.connection_pool.get_connection()
         self.BUFFER = BUFFER
-        self.logger = logger_config(f"ClientHandler_{self.thread_id}", os.getcwd(), "server_logs.log")
+        self.logger = logger_config(f"ClientHandler_{self.thread_id}", log_file, "server_logs.log")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.communication_utils = HandlerProtocols()
@@ -258,7 +258,7 @@ class Server:
         self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
         self.SOCKET_TYPE = SOCKET_TYPE
         self.server_socket = None
-        self.logger = logger_config("Server", os.getcwd(), "server_logs.log")
+        self.logger = logger_config("Server", log_file, "server_logs.log")
         self.serialize_utils = SerializeUtils()
         self.database_utils = DatabaseUtils()
         self.lock = Lock()

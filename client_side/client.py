@@ -2,7 +2,7 @@ import os
 import selectors
 import socket as s
 import time
-from common.config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from common.config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, log_file
 from common.logger_config import logger_config
 from common.serialization_utils import SerializeUtils
 from client_side.airplane import Airplane
@@ -37,7 +37,7 @@ class Client:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
-        self.logger = logger_config("Client", os.getcwd(), "client_logs.log")
+        self.logger = logger_config("Client", log_file, "client_logs.log")
         self.selector = selectors.DefaultSelector()
         self.serialize_utils = SerializeUtils()
         self.is_running = True

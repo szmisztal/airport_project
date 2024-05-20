@@ -2,13 +2,13 @@ import os
 import subprocess
 import datetime as dt
 from jsonrpcserver import serve, method, Success, Error
-from common.config_variables import db_file
+from common.config_variables import db_file, log_file
 from common.logger_config import logger_config
 from server_side.database_managment import DatabaseUtils
 from server_side.connection_pool import Connection
 
 
-logger = logger_config("RPC API logger", os.getcwd(), "rpc_api_logs.log")
+logger = logger_config("RPC API logger", log_file, "rpc_api_logs.log")
 db_utils = DatabaseUtils()
 connection = Connection(db_file)
 process = None
