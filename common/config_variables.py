@@ -31,7 +31,10 @@ BUFFER = 1024
 encode_format = "UTF-8"
 INTERNET_ADDRESS_FAMILY = s.AF_INET
 SOCKET_TYPE = s.SOCK_STREAM
-db_file = f"{os.path.dirname(os.path.realpath(__file__))}/airport_db.db"
 
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+db_file = os.path.join(DATA_DIR, "airport_db.db")
 
-
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+log_file = os.path.join(LOG_DIR)
