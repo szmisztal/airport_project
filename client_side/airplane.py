@@ -35,9 +35,9 @@ class Airplane:
         self.client = client
         self.date_of_appearance = datetime.datetime.now()
         self.id = None
-        self.x = coordinates["x"]
-        self.y = coordinates["y"]
-        self.z = coordinates["z"]
+        self._x = coordinates["x"]
+        self._y = coordinates["y"]
+        self._z = coordinates["z"]
         self.quarter = None
         self.initial_landing_point = None
         self.waiting_point = None
@@ -46,6 +46,66 @@ class Airplane:
         self.fly_to_initial_landing_point = False
         self.fly_to_runaway = False
         self.fly_to_waiting_point = False
+
+    @property
+    def x(self):
+        """
+        Gets the X-coordinate of the airplane.
+
+        Returns:
+        - int: The current X-coordinate of the airplane.
+        """
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        """
+        Sets the X-coordinate of the airplane.
+
+        Parameters:
+        - value (int): The new X-coordinate of the airplane.
+        """
+        self._x = value
+
+    @property
+    def y(self):
+        """
+        Gets the Y-coordinate of the airplane.
+
+        Returns:
+        - int: The current Y-coordinate of the airplane.
+        """
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        """
+        Sets the Y-coordinate of the airplane.
+
+        Parameters:
+        - value (float): The new Y-coordinate of the airplane.
+        """
+        self._y = value
+
+    @property
+    def z(self):
+        """
+        Gets the Z-coordinate of the airplane.
+
+        Returns:
+        - int: The current Z-coordinate of the airplane.
+        """
+        return self._z
+
+    @z.setter
+    def z(self, value):
+        """
+        Sets the Z-coordinate of the airplane.
+
+        Parameters:
+        - value (int): The new Z-coordinate of the airplane.
+        """
+        self._z = value
 
     @staticmethod
     def establish_init_airplane_coordinates():
